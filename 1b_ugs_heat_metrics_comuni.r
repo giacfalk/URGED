@@ -221,24 +221,39 @@ out_ndvi_m <- bind_rows(out_ndvi_ms)
 
 write_rds(out_ndvi_m, "data_provide_cdh_gvi_ITA_cities_withcovariates.rds")
 
+out_ndvi_m <- read_rds("data_provide_cdh_gvi_ITA_cities_withcovariates.rds")
+
+
 ###
+
+out_ndvi_m$out_b_mean_bins <- cut(out_ndvi_m$out_b_mean, quantile(out_ndvi_m$out_b_mean, seq(0, 1, 0.1)))
+out_ndvi_m <- within(out_ndvi_m, out_b_mean_bins <- relevel(out_b_mean_bins, ref = 3))
 
 library(fixest)
 
-m1 <- feols(log(t) ~ out_b_mean + build_h + pop_dens + pov_ind + water + elevation | COMUNE, data=out_ndvi_m)
+m1 <- feols(log(t) ~ out_b_mean + build_h + pop_dens + water + elevation | COMUNE, data=out_ndvi_m)
 summary(m1, "cluster")
 (exp(coef(m1)[1])-1)*100
 
-m2 <- feols(log(t) ~ out_b_max + build_h + pop_dens + pov_ind + water + elevation  | COMUNE, data=out_ndvi_m)
+m1_q <- feols(log(t) ~ out_b_mean + out_b_mean^2 + build_h + pop_dens + water + elevation | COMUNE, data=out_ndvi_m)
+summary(m1_q, "cluster")
+# (exp(coef(m1_q)[1])-1)*100
+
+m1_b <- feols(log(t) ~ out_b_mean_bins + build_h + pop_dens + water + elevation | COMUNE, data=out_ndvi_m)
+summary(m1_b, "cluster")
+# coefplot(m1_b, 1:2)
+
+m2 <- feols(log(t) ~ out_b_max + build_h + pop_dens + water + elevation  | COMUNE, data=out_ndvi_m)
 summary(m2, "cluster")
 (exp(coef(m2)[1])-1)*100
 
-m3 <- feols(log(t) ~ out_b_sd + build_h + pop_dens + pov_ind + water +elevation | COMUNE, data=out_ndvi_m)
+m3 <- feols(log(t) ~ out_b_sd + build_h + pop_dens + water +elevation | COMUNE, data=out_ndvi_m)
 summary(m3, "cluster")
 (exp(coef(m3)[1])-1)*100
 
 etable(m1, m2, m3, vcov="cluster")
-etable(m1, m2, m3, vcov="cluster", file = paste0(res_dir, "regtab1_ITA.tex"), tex = T)
+etable(m1, m2, m3, vcov="cluster", file = paste0(res_dir, "regtab1_ITA.tex"), tex = T, replace = T)
+etable(m1, m1_q, m1_b, vcov="cluster", file = paste0(res_dir, "regtab1_ITA_extra.tex"), tex = T, replace = T)
 
 write_rds(m1, paste0(res_dir, "ugs_cdh_general_model_ITA.rds"))
 
