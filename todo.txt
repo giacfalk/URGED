@@ -1,0 +1,13 @@
+STEFFEN
+
+* Develop cooling efficiency/capacity estimates
+* Projections ->Make future projections along the SSP storylines on the future evolution of UGBS and of its potential synergistic mitigation-adaptation role level for a globally-representative pool of cities ... global north / global south difference (intensification vs. extensification), use urbanisation and population existing gridded projections
+
+GIACOMO
+
+* Summaries of climate change’s role and the contribution of UGS to adaptation (heat reduction) and mitigation (energy use reduction) goals
+* Mortality/air pollution analysis
+
+__________________
+
+* PAPER -> https://www.overleaf.com/project/66ac9a6f911342a1d6a08765

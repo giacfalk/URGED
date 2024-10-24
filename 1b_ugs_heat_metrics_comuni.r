@@ -125,7 +125,10 @@ out_ndvi_m <- read_rds("data_provide_cdh_gvi_ITA_cities.rds")
 
 ###
 
-b <- pblapply(unique(out_ndvi_m$COMUNE), function(ctry){ ggplot(out_ndvi_m %>% filter(COMUNE==ctry))+
+# out_ndvi_m_plot = out_ndvi_m
+# out_ndvi_m_plot = out_ndvi_m_plot[-which(out_ndvi_m_plot$COMUNE=="Genova" & out_ndvi_m_plot$y<44.44),]
+
+b <- pblapply(unique(out_ndvi_m_plot$COMUNE), function(ctry){ ggplot(out_ndvi_m_plot %>% filter(COMUNE==ctry))+
     theme_classic()+
     geom_point(aes(x=x, y=y, colour=out_b_mean))+
     scale_colour_distiller(palette = "YlGn", direction = 1, limits=c(5, 40))+

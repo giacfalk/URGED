@@ -66,36 +66,27 @@ mort <- mort %>% mutate(weight = pop/totpop)
 
 ###
 
-m1 <- feols(log(mort_rate) ~ CDD:age_group + HDD:age_group | NUTS_ID + year + NUTS_ID^year + week + as.factor(covid), data=mort, weights = ~ weight, combine.quick = F)
+mort_bk = mort
+mort = filter(mort, age_group=="y65o")
+mort = filter(mort, mort_rate < Inf)
+
+m1 <- feols(mort_rate ~ CDD + HDD | ISO3 + year + week, data=mort, weights = ~ weight, combine.quick = F)
 summary(m1, cluster=c("NUTS_ID", "week"))
 
-m2 <- feols(mort_rate ~ CDD:age_group + HDD:age_group + CDD:age_group:out_b | NUTS_ID + year + NUTS_ID^year + week + as.factor(covid), data=mort, weights = ~ weight, combine.quick = F)
-summary(m2, cluster=c("NUTS_ID", "week"))
-
-m3 <- feols(mort_rate ~ CDD + HDD + CDD:out_b +  HDD:out_b | ISO3 + NUTS_ID + year + NUTS_ID^year + week + as.factor(covid) + age_group, data=mort, weights = ~ weight, combine.quick = F)
-summary(m3, cluster=c("NUTS_ID", "week"))
-
-plot_predictions(m3, condition = c("CDD", "out_b")) 
-plot_predictions(m3, condition = c("HDD", "out_b")) 
-
+m2 <- feols(mort_rate ~  CDD*out_b + HDD | ISO3 + year + week, data=mort, weights = ~ weight, combine.quick = F)
+summary(m2, cluster=c("NUTS_ID"))
 
 library(marginaleffects)
 
-p_1 <- plot_predictions(m2, condition = c("CDD", "out_b", "age_group")) 
-p_2 <-plot_predictions(m2, condition = c("HDD", "out_b", "age_group")) 
+plot_predictions(m2, condition = c("CDD")) 
+plot_predictions(m2, condition = c("CDD", "out_b")) 
+plot_predictions(m2, condition = c("HDD")) 
 
-library(patchwork)
-
-p_1 + p_2
-
-plot_predictions(m1, condition = c("CDD", "out_b", "age_group"))+
-  scale_colour_brewer(palette="Greens")+
-  scale_fill_brewer(palette="Greens")
-
-preferred_specification <- m1
+preferred_specification <- m2
 
 ###########################################################################################################
 
 # write the model objects
 
 write_rds(preferred_specification, paste0(res_dir, "ugs_mortality_model.rds"))
+write_rds(mort, paste0(res_dir, "ugs_mortality_data.rds"))
