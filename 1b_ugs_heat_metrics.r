@@ -1,7 +1,12 @@
 # This file collects all considered variables from various (geospatial and non-geospatial) databases that may have an explanatory role for explaining the number of cooling degree days. The output is written into a file `data_provide_cdh_gvi_143cities_withcovariates.rds`. This file will be accessed by other scripts for further analysis.
 # Set required packages -------------------------------------------------
-rm(list=ls(all=TRUE)) # Removes all previously created variables 
-gc()
+rm(list=ls(all=TRUE)) # Removes all previously created variables
+gc() # Garbage collection
+# Working directory [RStudio] -------------------------------------------------------
+library(rstudioapi)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
+setwd('..') # Move one up
+stub0 <- paste0(getwd(), "/") # Base working directory
 library(haven)
 library(tidyverse)
 library(pbapply)
@@ -11,19 +16,18 @@ library(raster)
 library(exactextractr)
 library(sf)
 library(terra)
-# Working directory -------------------------------------------------------
-library(rstudioapi)
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-setwd('..') # Move one up
-stub0 <- paste0(getwd(), "/") # Base working directory
+
 # Paths -------------------------------------------------------------------
 path_cities <- paste0(stub0, "results/cities_database_climatezones.gpkg")
 path_provide <- paste0(stub0, "climate/provide_urban_climate_data/")
 path_gvi <- paste0(stub0, "ugs/after_points_030624.Rdata")
 path_ghs_urbcentres <- paste0(stub0, "boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # GHS Urban Centre Database (R2019A) https://human-settlement.emergency.copernicus.eu/download.php?ds=ucdb
+path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/records/8419340
+path_subregions <- "wup/country-subregions_adapted.csv" # Path to citylist from WUP2018 F22, adapated to country names in URGED
 
 # Output file:
 outname <- paste0(stub0, "data_provide_cdh_gvi_143cities_withcovariates.rds")
+path_gvi_intermediate <- paste0(stub0, "ugs/after_points_030624_citynames.rds") # Save the intermediate file with GVI values
 
 # First load city names -------------------------------------------------------------
 setwd(path_provide)
@@ -61,7 +65,7 @@ my_urbclim_T2M_daily_mean_min_curpol_2030 <- rast("my_urbclim-T2M-daily-mean-min
 my_urbclim_T2M_daily_mean_min_curpol_2050 <- rast("my_urbclim-T2M-daily-mean-min_curpol_2050.vrt")
 my_urbclim_T2M_daily_mean_min_curpol_2070 <- rast("my_urbclim-T2M-daily-mean-min_curpol_2070.vrt")
 my_urbclim_T2M_daily_mean_min_curpol_2100 <- rast("my_urbclim-T2M-daily-mean-min_curpol_2100.vrt")
-# GVI data --------------------------------------------------------
+# GVI/UGS data --------------------------------------------------------
 load(path_gvi) # Variable is called 'out_ndvi_m'.
 # GHS data ------------------------------------------------------------
 ghs <- read_sf(path_ghs_urbcentres) # Cities database
@@ -78,6 +82,8 @@ out_ndvi_m$city <- ghs_top10$UC_NM_MN[as.numeric((sapply(strsplit(out_ndvi_m$id,
 out_ndvi_m$country <- ghs_top10$CTR_MN_NM[as.numeric((sapply(strsplit(out_ndvi_m$id,"_"), `[`, 1)))]
 # Add to dataset
 out_ndvi_m <- dplyr::select(out_ndvi_m, city, year, out_b, x, y, country)
+## Write the intermediate UGS data result to an output file for further processing in scenarios
+write_rds(out_ndvi_m, path_gvi_intermediate)
 # Add city names from PROVIDE data set
 out_ndvi_m <- out_ndvi_m[grep(paste(city_d_c, collapse="|"), out_ndvi_m$city, ignore.case=T),]
 
@@ -101,7 +107,6 @@ out_ndvi_m$t_2030 <- exact_extract(my_cooling_degree_hours_curpol_2030, out_ndvi
 out_ndvi_m$t_2050 <- exact_extract(my_cooling_degree_hours_curpol_2050, out_ndvi_m, "mean")
 out_ndvi_m$t_2070 <- exact_extract(my_cooling_degree_hours_curpol_2070, out_ndvi_m, "mean")
 out_ndvi_m$t_2100 <- exact_extract(my_cooling_degree_hours_curpol_2100, out_ndvi_m, "mean")
-# Extract urbclim T2max and add to df -----------------------------------------------
 out_ndvi_m$t_max <- exact_extract(my_urbclim_T2M_daily_mean_max_curpol_2020, out_ndvi_m, "mean")
 out_ndvi_m$t_max_2030 <- exact_extract(my_urbclim_T2M_daily_mean_max_curpol_2030, out_ndvi_m, "mean")
 out_ndvi_m$t_max_2050 <- exact_extract(my_urbclim_T2M_daily_mean_max_curpol_2050, out_ndvi_m, "mean")
@@ -185,17 +190,19 @@ out_ndvi_m <- st_as_sf(out_ndvi_m, coords=c("x", "y"), crs=4326, remove = F) %>%
 
 # out_ndvi_m <- out_ndvi_m %>% filter(city=="Rome" | city=="Milan")
 
-###
-
+### Add Köppen-Geiger Climate Zones
 library(kgc)
-
-cl <- climatezones
+cl <- climatezones # This is a command from kgc package
 
 out_ndvi_m$x_s <- RoundCoordinates(out_ndvi_m$x)
 out_ndvi_m$y_s <- RoundCoordinates(out_ndvi_m$y)
 
 out_ndvi_m <- merge(out_ndvi_m, cl, by.x=c("x_s", "y_s"), by.y=c("Lon", "Lat"))
-out_ndvi_m$Cls <- substr(as.character(out_ndvi_m$Cls), 1, 1) # Add the main KGC [A (tropical), B (arid), C (temperate), D (continental), and E (polar)]
+out_ndvi_m$Clsmain <- substr(as.character(out_ndvi_m$Cls), 1, 1) # Add the main KGC [A (tropical), B (arid), C (temperate), D (continental), and E (polar)]
+
+### Add sub-regions from WUP
+subregions <- read_csv(path_subregions)
+df <- merge(df, subregions, all.x = T, by.x="country", by.y="country")
 
 ###
 # check with additional covariates
@@ -203,7 +210,7 @@ out_ndvi_m$Cls <- substr(as.character(out_ndvi_m$Cls), 1, 1) # Add the main KGC 
 # Local climate zone(s)
 # https://journals.ametsoc.org/view/journals/bams/93/12/bams-d-11-00019.1.xml
 setwd(stub0)
-lcz <- rast("climate/lcz/lcz_filter_v3.tif")
+lcz <- rast(path_lcz)
 
 out_ndvi_m$lcz <- exact_extract(lcz, out_ndvi_m, "majority")
 

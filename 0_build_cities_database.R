@@ -1,5 +1,4 @@
 rm(list=ls(all=TRUE)) # Removes all previously created variables
-gc() 
 # Set required packages
 library(haven)
 library(tidyverse)
@@ -79,3 +78,9 @@ data_c_sp = st_as_sf(data_c_sp)
 mapview::mapview(data_c_sp["kg_cl"])
 
 write_sf(data_c_sp, "results/cities_database_climatezones.gpkg")
+
+# Export the Region and Subregion name from the GHS database
+ghs_export <- ghs %>%
+  st_drop_geometry() %>%
+  dplyr::select(ID_HDC_G0, CTR_MN_NM, CTR_MN_ISO, GRGN_L1, GRGN_L2, UC_NM_MN, UC_NM_LST, Cls, Cls_short)
+write_rds(ghs_export, "results/ghs_subregion_Cls.rds")

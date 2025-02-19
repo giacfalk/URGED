@@ -105,13 +105,13 @@ output <- list()
 # loop for all ssps and time-steps
 
 for (ssp in c("hist", "245", "370", "585")){
-  for (out_b_policy in c(T,F)){
+  for (out_b_policy in c(F, 20, 25, 30)){
     
     orig_data <- data_m
     
     orig_data$CDD = orig_data[,paste0("CDD_", ssp)]
     orig_data$HDD = orig_data[,paste0("HDD_", ssp)]
-    orig_data$out_b = ifelse(out_b_policy==T & orig_data$out_b<25, 25, orig_data$out_b)
+    orig_data$out_b = ifelse(out_b_policy!=F & orig_data$out_b<out_b_policy, out_b_policy, orig_data$out_b)
     
     projected <- predict(reg, orig_data)
     
@@ -137,56 +137,195 @@ output_s = merge(output_s, nuts, "NUTS_ID")
 
 output_s = st_as_sf(output_s)
 
-output_s$heh = ((output_s$mort_585_FALSE/output_s$mort_hist_FALSE)-1)*100
+output_s$heh = ((output_s$mort_585_0/output_s$mort_hist_0)-1)*100
 
 plot_a = ggplot()+
   theme_void()+
   geom_sf(data= nuts,fill="grey50", lwd=0.001)+
     geom_sf(data=output_s, aes(fill=heh))+
-  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-1, 3))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 5))+
   coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
   theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
   ggtitle("SSP585, around 2050 with current GVI")
 
 
-output_s$heh = ((output_s$mort_585_TRUE/output_s$mort_hist_TRUE)-1)*100
+output_s$heh = ((output_s$mort_585_20/output_s$mort_hist_20)-1)*100
 
 plot_b = ggplot()+
   theme_void()+
   geom_sf(data= nuts,fill="grey50", lwd=0.001)+
   geom_sf(data=output_s, aes(fill=heh))+
-  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-1, 3))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 5))+
   coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
   theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
-  ggtitle("SSP585, around 2050 with GVI>25 policy")
+  ggtitle("SSP585, around 2050 with GVI>20 policy")
 
 #
 
-output_s$heh = ((output_s$mort_245_FALSE/output_s$mort_hist_FALSE)-1)*100
+output_s$heh = ((output_s$mort_585_25/output_s$mort_hist_25)-1)*100
 
 plot_c = ggplot()+
   theme_void()+
   geom_sf(data= nuts,fill="grey50", lwd=0.001)+
   geom_sf(data=output_s, aes(fill=heh))+
-  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-1, 3))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 5))+
   coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
   theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
-  ggtitle("SSP245, around 2050 with current GVI")
+  ggtitle("SSP585, around 2050 with GVI>25 policy")
 
 
-output_s$heh = ((output_s$mort_245_TRUE/output_s$mort_hist_TRUE)-1)*100
+output_s$heh = ((output_s$mort_585_30/output_s$mort_hist_30)-1)*100
 
 plot_d = ggplot()+
   theme_void()+
   geom_sf(data= nuts,fill="grey50", lwd=0.001)+
   geom_sf(data=output_s, aes(fill=heh))+
-  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-1, 3))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 5))+
   coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
   theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
-  ggtitle("SSP245, around 2050 with GVI>25 policy")
+  ggtitle("SSP585, around 2050 with GVI>30 policy")
 
 library(patchwork)
 
 plot_a + plot_b + plot_c + plot_d + plot_layout(guides="collect") + plot_annotation(title="Climate change impact on yearly 65+ mortality rate")
 
 ggsave("results/mortality_project_ugs_policy_climatechange.png", height=8, width=8, scale=1.2, bg="white")
+
+##########
+
+output <- list()
+
+# loop for all ssps and time-steps
+
+for (ssp in c("hist", "245", "370", "585")){
+  
+  orig_data <- data_m
+  
+  orig_data$CDD = orig_data[,paste0("CDD_", ssp)]
+  orig_data$HDD = orig_data[,paste0("HDD_", ssp)]
+  
+  projected <- predict(reg, orig_data)
+  
+  output[[as.character(ssp)]] <- projected
+  
+}
+
+
+###
+
+# bind results together
+output <- as.data.frame(do.call("cbind", output))
+colnames(output) = paste0("mort_", colnames(output))
+output = bind_cols(data_m, output)
+
+##########
+
+nuts = read_sf("boundaries/NUTS_RG_60M_2021_4326.geojson")
+
+output_s = dplyr::group_by(output, NUTS_ID)  %>% filter(week==28) %>%  dplyr::summarise_if(is.numeric, mean, na.rm=T)
+
+output_s = merge(output_s, nuts, "NUTS_ID")
+
+output_s = st_as_sf(output_s)
+
+ggplot()+
+  theme_void()+
+  geom_sf(data= nuts,fill="grey50", lwd=0.001)+
+  geom_sf(data=output_s, aes(fill=((mort_585/mort_hist)-1)*100))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen")+
+  coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
+  theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))
+
+##################
+#################
+
+output <- list()
+
+# loop for all ssps and time-steps
+
+for (ssp in c("hist", "245", "370", "585")){
+  for (out_b_policy in c(F, 20, 25, 30)){
+    
+    orig_data <- data_m
+    
+    orig_data$CDD = orig_data[,paste0("CDD_", ssp)]
+    orig_data$HDD = orig_data[,paste0("HDD_", ssp)]
+    orig_data$out_b = ifelse(out_b_policy!=F & orig_data$out_b<out_b_policy, out_b_policy, orig_data$out_b)
+    
+    projected <- predict(reg, orig_data)
+    
+    output[[paste0(as.character(ssp), "_", as.character(out_b_policy))]] <- projected
+    
+  }}
+
+
+###
+
+# bind results together
+output <- as.data.frame(do.call("cbind", output))
+colnames(output) = paste0("mort_", colnames(output))
+output = bind_cols(data_m, output)
+
+##########
+
+nuts = read_sf("boundaries/NUTS_RG_60M_2021_4326.geojson")
+
+output_s = dplyr::group_by(output, NUTS_ID)  %>% filter(week==28) %>%  dplyr::summarise_if(is.numeric, mean, na.rm=T)
+
+output_s = merge(output_s, nuts, "NUTS_ID")
+
+output_s = st_as_sf(output_s)
+
+output_s$heh = ((output_s$mort_585_0/output_s$mort_hist_0)-1)*100
+
+plot_a = ggplot()+
+  theme_void()+
+  geom_sf(data= nuts,fill="grey50", lwd=0.001)+
+  geom_sf(data=output_s, aes(fill=heh))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 25))+
+  coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
+  theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
+  ggtitle("SSP585, around 2050 with current GVI")
+
+
+output_s$heh = ((output_s$mort_585_20/output_s$mort_hist_20)-1)*100
+
+plot_b = ggplot()+
+  theme_void()+
+  geom_sf(data= nuts,fill="grey50", lwd=0.001)+
+  geom_sf(data=output_s, aes(fill=heh))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 25))+
+  coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
+  theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
+  ggtitle("SSP585, around 2050 with GVI>20 policy")
+
+#
+
+output_s$heh = ((output_s$mort_585_25/output_s$mort_hist_25)-1)*100
+
+plot_c = ggplot()+
+  theme_void()+
+  geom_sf(data= nuts,fill="grey50", lwd=0.001)+
+  geom_sf(data=output_s, aes(fill=heh))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 25))+
+  coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
+  theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
+  ggtitle("SSP585, around 2050 with GVI>25 policy")
+
+
+output_s$heh = ((output_s$mort_585_30/output_s$mort_hist_30)-1)*100
+
+plot_d = ggplot()+
+  theme_void()+
+  geom_sf(data= nuts,fill="grey50", lwd=0.001)+
+  geom_sf(data=output_s, aes(fill=heh))+
+  scale_fill_gradient2(midpoint = 0, name="%", na.value = "grey50", high = "red", low="forestgreen", limits=c(-5, 25))+
+  coord_sf(xlim=c(-20, 40), ylim=c(30, 80))+
+  theme(aspect.ratio = 1, axis.text.x=element_blank(),  axis.ticks.x=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank(), legend.text = element_text(size = 15), strip.text = element_text(size = 15) ,legend.title=element_text(size=15))+
+  ggtitle("SSP585, around 2050 with GVI>30 policy")
+
+library(patchwork)
+
+plot_a + plot_b + plot_c + plot_d + plot_layout(guides="collect") + plot_annotation(title="Climate change impact on yearly 65+ mortality rate")
+
+ggsave("results/mortality_project_ugs_policy_climatechange_midjuly.png", height=8, width=8, scale=1.2, bg="white")

@@ -27,7 +27,7 @@ city_d=tolower(read.csv("cities_provide.csv")[-91,1]) %>% gsub(" ", "_", .)
 
 city_d <- city_d[grep(paste0(c("Bari", "Bologna", "Genoa", "Milan", "Naples", "Padua", "Palermo", "Rome", "Trieste", "Turin"), collapse="|"), city_d, ignore.case = T)]
 
-indicator=c("urbclim-cooling-degree-hours", "urbclim-WBGT-hourover25")
+indicator=c("urbclim-cooling-degree-hours", "urbclim-T2M-daily-mean-max")
 reference=c("absolute", "present-day")
 spatial="area"
 time="annual"
@@ -84,6 +84,44 @@ my_curpol_2100 <- rast("my_curpol_2100_10comuni.vrt")
 
 ###
 
+
+v <- list.files(pattern = "absolute")
+v <- v[grepl("2030", v)]
+v <- v[grepl(paste0(city_d, collapse = "|"), v)]
+v <- v[grepl("T2M-daily-mean-max", v)]
+v <- v[grepl("curpol", v)]
+v <- vrt(v, "my_curpol_2030_10comuni_tmax.vrt", overwrite=T)
+
+v <- list.files(pattern = "absolute")
+v <- v[grepl("2050", v)]
+v <- v[grepl(paste0(city_d, collapse = "|"), v)]
+v <- v[grepl("T2M-daily-mean-max", v)]
+v <- v[grepl("curpol", v)]
+v <- vrt(v, "my_curpol_2050_10comuni_tmax.vrt", overwrite=T)
+
+v <- list.files(pattern = "absolute")
+v <- v[grepl("2070", v)]
+v <- v[grepl(paste0(city_d, collapse = "|"), v)]
+v <- v[grepl("T2M-daily-mean-max", v)]
+v <- v[grepl("curpol", v)]
+v <- vrt(v, "my_curpol_2070_10comuni_tmax.vrt", overwrite=T)
+
+v <- list.files(pattern = "absolute")
+v <- v[grepl("2100", v)]
+v <- v[grepl(paste0(city_d, collapse = "|"), v)]
+v <- v[grepl("T2M-daily-mean-max", v)]
+v <- v[grepl("curpol", v)]
+v <- vrt(v, "my_curpol_2100_10comuni_tmax.vrt", overwrite=T)
+
+###
+
+my_curpol_2030_tmax <- rast("my_curpol_2030_10comuni_tmax.vrt")
+my_curpol_2050_tmax <- rast("my_curpol_2050_10comuni_tmax.vrt")
+my_curpol_2070_tmax <- rast("my_curpol_2070_10comuni_tmax.vrt")
+my_curpol_2100_tmax <- rast("my_curpol_2100_10comuni_tmax.vrt")
+
+###
+
 setwd(stub)
 out_ndvi_m<-readRDS("F:/.shortcut-targets-by-id/13znqeVDfPULc4J_lQLbyW_Kmfa03o63F/3-Research/GIACOMO/systemic cooling poverty/glob_assess_energy_demand_reduction_potential/seme_data/gvi_extract_10cities/GVI_comuni_10cities_2016_2023.rds")
 
@@ -110,12 +148,19 @@ out_ndvi_m$t_2100 <- exact_extract(my_curpol_2100, out_ndvi_m, "mean")
 
 ###
 
+out_ndvi_m$tmax_2030 <- exact_extract(my_curpol_2030_tmax, out_ndvi_m, "mean")
+out_ndvi_m$tmax_2050 <- exact_extract(my_curpol_2050_tmax, out_ndvi_m, "mean")
+out_ndvi_m$tmax_2070 <- exact_extract(my_curpol_2070_tmax, out_ndvi_m, "mean")
+out_ndvi_m$tmax_2100 <- exact_extract(my_curpol_2100_tmax, out_ndvi_m, "mean")
+
+###
+
 out_ndvi_m <- filter(out_ndvi_m, !is.na(t))
 
 out_ndvi_m_bk <- out_ndvi_m
 out_ndvi_m$geometry <- NULL
 
-out_ndvi_m <- group_by(out_ndvi_m, x, y, COMUNE) %>% dplyr::summarise(out_b_mean=mean(GVI, na.rm=T), out_b_max=max(GVI, na.rm=T), out_b_sd=sd(GVI, na.rm=T), t=mean(t, na.rm=T))
+out_ndvi_m <- group_by(out_ndvi_m, x, y, COMUNE) %>% dplyr::summarise(out_b_mean=mean(GVI, na.rm=T), out_b_max=max(GVI, na.rm=T), out_b_sd=sd(GVI, na.rm=T), t=mean(t, na.rm=T), tmax=mean(tmax_2030, na.rm=T))
 
 ###
 
@@ -187,19 +232,19 @@ out_ndvi_m <- st_as_sf(out_ndvi_m, coords=c("x", "y"), crs=4326, remove = F) %>%
 
 out_ndvi_m$lcz <- exact_extract(lcz, out_ndvi_m, "majority")
 
-build_v <- rast("H:/ECIP/Falchetta/era5/daily/new_2016_2022/GHS_BUILT_V_E2020_GLOBE_R2023A_4326_3ss_V1_0.tif")
-build_h <- rast("H:/ECIP/Falchetta/era5/daily/new_2016_2022/GHS_BUILT_H_AGBH_E2018_GLOBE_R2023A_4326_3ss_V1_0.tif")
+build_v <- rast("socioecon/GHS_BUILT_V_E2020_GLOBE_R2023A_4326_3ss_V1_0.tif")
+build_h <- rast("socioecon/GHS_BUILT_H_AGBH_E2018_GLOBE_R2023A_4326_3ss_V1_0.tif")
 
 out_ndvi_m$build_v <- exact_extract(build_v, out_ndvi_m, "mean")
 out_ndvi_m$build_h <- exact_extract(build_h, out_ndvi_m, "mean")
 
-pop_dens <- rast("H:/ECIP/Falchetta/era5/daily/new_2016_2022/GHS_POP_E2020_GLOBE_R2023A_4326_3ss_V1_0.tif")
+pop_dens <- rast("socioecon/GHS_POP_E2020_GLOBE_R2023A_4326_3ss_V1_0.tif")
 
 out_ndvi_m$pop_dens <- exact_extract(pop_dens, out_ndvi_m, "mean")
 
 out_ndvi_m$pop_dens_d <- cut(out_ndvi_m$pop_dens, quantile(out_ndvi_m$pop_dens, seq(0, 1, 0.2)))
 
-pov_ind <- rast("H:/ECIP/Falchetta/era5/daily/new_2016_2022/povmap-grdi-v1.tif")
+pov_ind <- rast("socioecon/povmap-grdi-v1.tif")
 
 out_ndvi_m$pov_ind <- exact_extract(pov_ind, out_ndvi_m, "mean")
 
@@ -226,6 +271,13 @@ write_rds(out_ndvi_m, "data_provide_cdh_gvi_ITA_cities_withcovariates.rds")
 
 out_ndvi_m <- read_rds("data_provide_cdh_gvi_ITA_cities_withcovariates.rds")
 
+###
+
+library(stargazer)
+
+ms <- as.data.frame(out_ndvi_m %>% dplyr::select(t, out_b_mean, out_b_max, out_b_sd, build_h, pop_dens, water, elevation))
+
+stargazer(ms, summary = T, out="results/sum_tab_points.tex")
 
 ###
 
@@ -259,6 +311,23 @@ etable(m1, m2, m3, vcov="cluster", file = paste0(res_dir, "regtab1_ITA.tex"), te
 etable(m1, m1_q, m1_b, vcov="cluster", file = paste0(res_dir, "regtab1_ITA_extra.tex"), tex = T, replace = T)
 
 write_rds(m1, paste0(res_dir, "ugs_cdh_general_model_ITA.rds"))
+
+###
+
+m1 <- feols(log(tmax) ~ out_b_mean + build_h + pop_dens + water + elevation | COMUNE, data=out_ndvi_m)
+summary(m1, "cluster")
+(exp(coef(m1)[1])-1)*100
+
+m2 <- feols(log(tmax) ~ out_b_max + build_h + pop_dens + water + elevation  | COMUNE, data=out_ndvi_m)
+summary(m2, "cluster")
+(exp(coef(m2)[1])-1)*100
+
+m3 <- feols(log(tmax) ~ out_b_sd + build_h + pop_dens + water +elevation | COMUNE, data=out_ndvi_m)
+summary(m3, "cluster")
+(exp(coef(m3)[1])-1)*100
+
+etable(m1, m2, m3, vcov="cluster")
+etable(m1, m2, m3, vcov="cluster", file = paste0(res_dir, "regtab1_ITA_tmax.tex"), tex = T, replace = T, label = "tab:tmax_10cities_si")
 
 ###
 
