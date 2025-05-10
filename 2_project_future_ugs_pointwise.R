@@ -16,10 +16,6 @@ library(tidyverse)
 source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
 source("URGED/support/fcts_helpers_debug.R")
 source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
-# Variables
-# slopfac1 = 0.50 # Slope factor for the envelope of x% more growth than historically
-# fac2050a = 0.25 # Make GVI 25% larger than current value by 2050
-# fac2050b = 0.5 # Make GVI 50% larger than current value by 2050
 # Directories and settings ----------------------------
 ## Input
 path_ugs_complete <- "ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
@@ -28,13 +24,34 @@ path_highestobs <- "ugs/dfhighestobs.rds" # Highest observations and 10% / 90% p
 path_results <- "results/scenarios/"
 file_out_df <- paste0(path_results, "dfscenarios_pointlevel.rds")
 
-# Code ########################################################################################
+# Code #
+# Determine highest and lowest observations ---------------------------
+dffrontrunners <- ugs %>%
+  dplyr::filter(lcz_filter_v3 <= 10) %>%   # Filter the land cover classes that are not urban (i.e. lcz_filter_v3 <= 10)
+  dplyr::filter(lcz_filter_v3 != 7) %>% # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
+  group_by(lcz_filter_v3, Cls_short) %>%
+  arrange(desc(out_b), .by_group = TRUE) %>% # Sort within each group by value in descending order
+  mutate( # Create the 10th and 90th percentile entries
+    boundlwr = stats::quantile(out_b, prob=c(.1,.5,.9))[[1]],
+    boundlwr_type = "10pct",
+    boundupr = stats::quantile(out_b, prob=c(.1,.5,.9))[[3]],
+    boundupr_type = "90pct",) %>%
+  ungroup() %>% # Ungroup to return a standard data frame
+  dplyr::select(-ID, -out_b, -x, -y, -year) %>%
+  select(-country, -CTR_MN_ISO,-GRGN_L1,-GRGN_L2,-UC_NM_LST, EL_AV_ALS) %>%
+  distinct()
+dfhighestobs <- dffrontrunners %>%
+  select(Cls_short, lcz_filter_v3, starts_with("bound")) %>%
+  distinct()
+# Save to file
+saveRDS(dfhighestobs, file = paste0("ugs/dfhighestobs.rds"))
+
 # Pre-process data and add city names -------------------------------------
-# load(path_ugs) # year-to-year data of UGS. Var: **out_ndvi_m**
 ugs <- read_rds(path_ugs_complete)
 ugs <- ugs %>% 
   filter(city != "N/A") %>% # Drop one row with a bad city name
-  filter(lcz_filter_v3 <= 10) # Only keep urban form classes that are urban
+  filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
+  select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
 
 # First get share of LCZ and KGZ per city
 ## Create spatial averages, but still organized per year.
@@ -77,7 +94,7 @@ dfspattemp <- ugs %>%
          out_b_quart_lwr = quantile(out_b, prob=c(.25,.5,.75))[[1]] # Define 25th percentile
          ) %>%
   ungroup() %>%
-  dplyr::select(-out_b, -ID, -x, -y, -year) %>%
+  dplyr::select(-out_b, -ID, -x, -y, -year, -EL_AV_ALS) %>%
   distinct()
 
 # test <- c(13,34,53,23,73,25,45) # For debugging quartiles
@@ -96,34 +113,10 @@ citylist <- dfspat$city %>%
   unique() %>%
   sort()
 
-# dfspat <- dfspat %>% dplyr::filter(city != "Newcastle")
-# dfspattemp <- dfspattemp %>% dplyr::filter(city != "Newcastle")
 dftemp <- merge(dfspat, dfspattemp,
-                 by = c("city", "id", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+                 by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
 
-# cutcity1 <- 2
-# cutcity2 <- 10
-# citylist1 <- citylist[1:cutcity1]
-# citylist2 <- citylist[(cutcity1+1):cutcity2]
-# citylist3 <- citylist[(cutcity1+1):length(citylist)]
-# dfspat1 <- dfspat %>% dplyr::filter(city %in% citylist1)
-# dfspat2 <- dfspat %>% dplyr::filter(city %in% citylist2)
-# dfspat3 <- dfspat %>% dplyr::filter(city %in% citylist3)
-# dfspattemp1 <- dfspattemp %>% dplyr::filter(city %in% citylist1)
-# dfspattemp2 <- dfspattemp %>% dplyr::filter(city %in% citylist2)
-# dfspattemp3 <- dfspattemp %>% dplyr::filter(city %in% citylist3)
-# 
-# dftemp1 <- merge(dfspat1, dfspattemp1,
-#                 by = c("city", "id", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
-# dftemp2 <- merge(dfspat2, dfspattemp2,
-#                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
-# dftemp3 <- merge(dfspat3, dfspattemp3,
-#                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
-# dftemp <- row_bind(dftemp1, dftemp2, dftemp3)
-
-
-# Merge with the "highest observed" dataset.
-dfhighestobs <- read_rds(path_highestobs)
+# Merge with the "highest and lowest observed" dataset
 df <- merge(dftemp, dfhighestobs, by = c("Cls_short", "lcz_filter_v3"), all.x = T)
 
 # The data.frame df now contains the GVI values on spatial average, as well as spatio-temporal average. Classified by LCZ and Cls_short.
@@ -175,19 +168,16 @@ dffuture <- dffuture %>%
 
 # Merge the future data with the historic data in df
 dfscen <- merge(dffuture, df, all = T)
-# Add a general out_b_mean for historical and future years for the ALPS project
-# dfscen <- dfscen %>%
-#   mutate(GVI_ALPS = ifelse(!is.na(out_b_mean_s), out_b_mean_s, (GVI_proja_upr + GVI_proja_lwr)/2))
-
-# (i)  “out_b_mean_s” - this is the average GVI value (the unit in which SGS is measured) for all sample points in a single lcz
-# (ii) “GVI_ALPS” - This is a meta label to avoid NANs. For years <= 2023 it equals out_b_mean_s for years >= 2023 it equals (GVI_proja_upr + GVI_proj_lwr)/2
-# (iii) “GVI_proja_upr” - This is the upper boundary of the “a” scenario. It assumes a 25% growth of SGS starting from the year 2023 to 2050, starting from the 75% percentile of the observed SGS for the 2016 - 2023 period.
-# (iv) “GVI_proja_lwr” - This is the lower boundary of the “a” scenario. It assumes a 25% decrease of SGS starting from the year 2023 to 2050, starting from the 25% percentile of the observed SGS for the 2016 - 2023 period.
-# (v) “GVI_projb_upr” - This is the upper boundary of the “b” scenario. It assumes a 50% growth of SGS starting from the year 2023 to 2050, starting from the 75% percentile of the observed SGS for the 2016 - 2023 period.
-# (vi) “GVI_projb_lwr” - This is the lower boundary of the “b” scenario. It assumes a 50% decrease of SGS starting from the year 2023 to 2050, starting from the 25% percentile of the observed SGS for the 2016 - 2023 period.
 
 write_rds(dfscen, "results/scenarios/dfscen_pointlevel.rds")
 
+
+
+
+
+
+################
+# Some plotting
 # Plot the evolution of the scenarios for four sample cities
 dfplot <- dfscen %>%
   dplyr::filter(lcz_filter_v3 <= 10, city %in% list_samplecities) %>%
