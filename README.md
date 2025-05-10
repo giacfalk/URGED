@@ -1,12 +1,4 @@
-# URGED
-## Data sets
-The following files are saved as intermediate or output files. Usually either in .rds or .RData.
-
-### UGS data for all 1180 cities
-This dataset contains all points for all 180 cities with ugs AND also KGC, LCZ, GHS-associated variables (subregion etc.). For various process reasons, this is produced in `0_build_ugspoints_database.R`:
-`ugs/after_points_030624_complete.rds`
-This is a 200 MB rds file.
-
+This repository contains the code relevant for the URGED project. Data and outputs are written to folders that are not part of this repository.
 ## Folder structure
 
 The main code is contained in the `URGED/` folder.
@@ -17,9 +9,35 @@ Regression tables in `results/regtab/`
 
 Helper functions in `URGED/support`
 
+# Data sets
+The following files are saved as intermediate or output files. Usually either in .rds or .RData.
+
+## UGS data
+This dataset contains all points for all 180 cities with ugs AND also KGC, LCZ, GHS-associated variables (subregion etc.). For various process reasons, this is produced in `0_build_ugspoints_database.R`:
+
+The old file around which much code has been designed (180 cities): `ugs/after_points_030624_complete.rds`
+
+Colnames:
+
+	"city" "country" "year" "out_b" "x" "y" "ID" "lcz_filter_v3" "ID_HDC_G0"
+	"CTR_MN_ISO" "GRGN_L1" "GRGN_L2" "UC_NM_LST" "Cls" "Cls_short"  
 
 
-## List of dependent Variables
+The new file with 357 cities
+- `ugs/after_points_100425_completedatabase.rds`
+
+Colnames:
+
+	"city" "country" "id" "year" "x" "y" "out_b" "ID" "lcz_filter_v3" "ID_HDC_G0"
+	"CTR_MN_ISO" "GRGN_L1" "GRGN_L2" "UC_NM_LST" "EL_AV_ALS" "Cls" "Cls_short" 
+Attn! Here, we have variables id and ID! 
+
+## Cities
+`ugs/after_points_100425_completedatabase.rds` contains 357 entries
+
+
+
+## List of dependent Variables for 
 `t`: `my_cooling_degree_hours_curpol` (filtered by `is.na(t)`)
 
 `t_max`: `my_urbclim_T2M_daily_mean_max_curpol`
@@ -131,3 +149,10 @@ Project city names are stored in the following locations:
 Elevation for the computation of WBT/WBGT is obtained reading the elevation from the existing data set, and then the *bigleaf* package to compute standard pressure for that elevation:
 
 	mutate(patm = bigleaf::pressure.from.elevation(EL_AV_ALS.x, 273.15) * 10)
+	
+sdfs
+
+sdf
+
+	test 
+	
