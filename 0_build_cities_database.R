@@ -1,5 +1,12 @@
 rm(list=ls(all=TRUE)) # Removes all previously created variables
 # Set required packages
+library(conflicted)
+conflicts_prefer(dplyr::filter, dplyr::select, dplyr::group_by)
+library(rstudioapi)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
+setwd('..') # Move WD one up
+stub0 <- paste0(getwd(), "/") # Define a variable with the current WD
+res_dir <- paste0(stub0, 'results/', sep ='') # Set path for results directory
 library(haven)
 library(tidyverse)
 library(pbapply)
@@ -11,11 +18,7 @@ library(kgc)
 library(sf)
 sf::sf_use_s2(F)
 library(terra)
-library(rstudioapi)
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-setwd('..') # Move WD one up
-stub0 <- paste0(getwd(), "/") # Define a variable with the current WD
-res_dir <- paste0(stub0, 'results/', sep ='') # Set path for results directory
+
 
 ###
 # First load city names
@@ -82,5 +85,9 @@ write_sf(data_c_sp, "results/cities_database_climatezones.gpkg")
 # Export the Region and Subregion name from the GHS database
 ghs_export <- ghs %>%
   st_drop_geometry() %>%
-  dplyr::select(ID_HDC_G0, CTR_MN_NM, CTR_MN_ISO, GRGN_L1, GRGN_L2, UC_NM_MN, UC_NM_LST, Cls, Cls_short)
+  select(ID_HDC_G0, CTR_MN_NM, CTR_MN_ISO, GRGN_L1, GRGN_L2, UC_NM_MN, UC_NM_LST, EL_AV_ALS, Cls, Cls_short)
 write_rds(ghs_export, "results/ghs_subregion_Cls.rds")
+
+####
+
+setwd(paste0(stub0, "/URGED"))

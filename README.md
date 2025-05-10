@@ -15,6 +15,8 @@ Results in the `results/` folder
 
 Regression tables in `results/regtab/`
 
+Helper functions in `URGED/support`
+
 
 
 ## List of dependent Variables
@@ -33,7 +35,9 @@ Regression tables in `results/regtab/`
 ## List of independent Variables
 `Cls`: Köppen Geiger zone acquired in `1_b_ugs_heat_metrics.R` using package kgc.R
 
-`Clsmain`: Main (first letter) of Köppen Geiger climate zone
+`Cls_short`: Main (first letter) of Köppen Geiger climate zone. In some parts also calles `Cls_main`
+
+`lcz_filter_v3`: Local climate zone (urban form)
  
 ## Code descriptions
  
@@ -43,7 +47,7 @@ Regression tables in `results/regtab/`
 - Get local climate zone using a raster file from https://journals.ametsoc.org/view/journals/bams/93/12/bams-d-11-00019.1.xml 
 - Merge provide city names and GHS data using fuzzyjoin and stringdist_join()
 - The result is visualized using mapview for an interactive map of cities colored by climate zone (kg_cl).
-- The final dataset is saved as a GeoPackage file (results/cities_database_climatezones.gpkg), which can be used for further spatial analysis.
+- The final dataset is saved as a GeoPackage file (`results/cities_database_climatezones.gpkg`), which can be used for further spatial analysis.
 
 ###**`1_b_ugs_heat_metrics.R`**
 This code will produce the output file used for the statistical analysis.
@@ -71,8 +75,29 @@ Data from 1b code is loaded (`data_provide_cdh_gvi_143cities_withcovariates.rds`
 ### **`1bb_ugs_statsvis`**
 Visualize some of the statistical relatinships
 
-### `2d_future_ugs.R`
+### **`2_project_future_ugs_pointwise`**
+[May 10 2025]
+
 Create projections for future Urban Green Space and calculate related future cooling capability based on determined elasticities.
+
+Goal: make scenarios for each cluster of Cls_short and lcz in each city. Project into future taking into account the individual "adaptation limit".
+Finally, summarize to city level again. Both data.frames can be writting to output.
+
+- Load the complete UGS data from `ugs/after_points_xxxx_completedatabase.rds`
+- Filter city names with NA, and LCZ > 10 (non-urban classes
+- Make data.frame `dfspat`
+
+- First, construct a data.frame which contains the GVI values on spatial average, as well as spatio-temporal average. Classified by LCZ and Cls_short.
+The data.frames are called `dfspat` and `dfspattemp`
+
+Column names:
+
+- `out_b_mean_st`: The spatial (city, lcz, Clsmain) and temporal (2016-2023) mean 
+- `out_b_mean_s`: The spatial (city, lcz, Clsmain) mean, but years are retained.
+- `npid_xx`: The number of sampling points for each of the averaging
+
+Produces various plots, including future scenarios of urban green, and some descriptive statistics of the data points in the ugs data frame `ugs/after_points_030624_completedatabase.rds`
+
 
 We create an ID-Variable called `pid` which is made using paste0(x, y, sep = "-"), where x and y are longitude and latitude, respectively.
 Note that the number of pids remains constant from 2016-2023 in most cities, but not in all cities. One example is Singapore, where pid changes year-to-year. Cities in which the number of pid are not constant over the analysis period (2016-2023):
@@ -88,18 +113,21 @@ Note that the number of pids remains constant from 2016-2023 in most cities, but
 * Sydney
 * Tokyo
 
-### `2f_project_future_ugs_pointwise`
+# City names and harmonization
 
-Goal: make scenarios for each cluster of Cls_short and lcz in each city. Project into future taking into account the individual "adaptation limit".
-Finally, summarize to city level again. Both data.frames can be writting to output.
+Most city names are the same across data sets, but not all. There are 142 cities in the PROVIDE data set.
 
-1) First, construct a data.frame which contains the GVI values on spatial average, as well as spatio-temporal average. Classified by LCZ and Cls_short.
-The data.frames are called `dfspat` and `dfspattemp`
+There are 180 cities in the SGS data set used for URGED and developed in Falchetta and Hammad (2025).
 
-Column names:
+**Spelling differences** could be found for:
+Salvador, Addis Abeba, Teheran, Rotterdam, Belgrado, Ho Chi Minh
 
-- `out_b_mean_st`: The spatial (city, lcz, Clsmain) and temporal (2016-2023) mean 
-- `out_b_mean_s`: The spatial (city, lcz, Clsmain) mean, but years are retained.
-- `npid_xx`: The number of sampling points for each of the averaging
+Project city names are stored in the following locations:
 
-Produces various plots, including future scenarios of urban green, and some descriptive statistics of the data points in the ugs data frame `ugs/after_points_030624_completedatabase.rds`
+- `results/ghs_subregion_Cls.rds` 
+- `DUMMY`
+
+## Elevation
+Elevation for the computation of WBT/WBGT is obtained reading the elevation from the existing data set, and then the *bigleaf* package to compute standard pressure for that elevation:
+
+	mutate(patm = bigleaf::pressure.from.elevation(EL_AV_ALS.x, 273.15) * 10)

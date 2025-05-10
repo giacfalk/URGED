@@ -19,7 +19,8 @@ stub0 <- paste0(getwd(), "/") # Base working directory
 
 ###
 
-outer = list.files(path="results", full.names = T, pattern="t_data")
+outer = list.files(path="results", full.names = T, pattern="t_data", recursive = T)
+outer <- outer[!grepl("Newcastle", outer)]
 outer = bind_rows(lapply(outer, read.csv))
 
 outer$lcz <- factor(outer$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
@@ -28,7 +29,7 @@ colnames(outer)[5] <- "tas"
 
 ###
 
-source("URGED/fcts_labelers_colors.R")
+source("URGED/support/fcts_labelers_colors.R")
 
 ggplot(outer)+ #2025
   theme_classic()+
@@ -57,3 +58,8 @@ ggsave("urbclim_distr_bycity_tas_monthly.png", last_plot(), height = 7, width = 
 #
 
 outer %>% filter(city=="Barcelona" & variable==6) %>% pull(tas) %>% summary(.)
+
+####
+
+setwd(paste0(stub0, "/URGED"))
+

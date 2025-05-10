@@ -1,8 +1,5 @@
-
-rm(list=ls(all=TRUE)) # Removes all previously created variables
-gc() 
-
-# Set required packages
+rm(list=ls(all=TRUE)) # Removes all previously created variables 
+gc()
 library(haven)
 library(tidyverse)
 library(pbapply)
@@ -11,12 +8,26 @@ library(marginaleffects)
 library(raster)
 library(exactextractr)
 library(sf)
+library(pbapply)
+library(matrixStats)
+library(lubridate)
 library(terra)
+library(rstudioapi)
 
-stub <- "C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/climate/provide_urban_climate_data/"
-setwd(stub)
+##
+# Working directory -------------------------------------------------------
 
-out_ndvi_m <- read_rds("data_provide_cdh_gvi_143cities.rds")
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
+setwd('..') # Move one up
+stub0 <- paste0(getwd(), "/") # Base working directory
+# Paths -------------------------------------------------------------------
+path_cities <- paste0(stub0, "results/cities_database_climatezones.gpkg")
+path_provide <- paste0(stub0, "climate/provide_urban_climate_data/")
+path_gvi <- paste0(stub0, "ugs/after_points_100425.Rdata")
+path_ghs_urbcentres <- paste0(stub0, "boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # GHS Urban Centre Database (R2019A) https://human-settlement.emergency.copernicus.eu/download.php?ds=ucdb
+path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/records/8419340
+
+out_ndvi_m <- read_rds(paste0(stub0, "implementation/climate/provide_urban_climate_data/data_provide_cdh_gvi_143cities.rds"))
 
 #
 
@@ -26,7 +37,7 @@ out_ndvi_m <- st_as_sf(out_ndvi_m, coords = c("x", "y"), crs=4326, remove = F) %
 
 #
 
-pop <- rast("hrsl_pop/grc_general_2020.tif")
+pop <- rast("implementation/hrsl_pop/grc_general_2020.tif")
 
 out_ndvi_m$pop <- exact_extract(pop, out_ndvi_m, "mean")
 
@@ -81,4 +92,7 @@ google_streetview(location = c(observations_at_quantile$y, observations_at_quant
 
 dev.print(pdf, paste0('athens_q3_gvi_', round(observations_at_quantile$out_b_mean, 0), '.pdf'))
 
-#####
+####
+
+setwd(paste0(stub0, "/URGED"))
+

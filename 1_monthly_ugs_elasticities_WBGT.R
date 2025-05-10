@@ -25,7 +25,7 @@ stub0 <- paste0(getwd(), "/") # Base working directory
 # Paths -------------------------------------------------------------------
 path_cities <- paste0(stub0, "results/cities_database_climatezones.gpkg")
 path_provide <- paste0(stub0, "climate/provide_urban_climate_data/")
-path_gvi <- paste0(stub0, "ugs/after_points_030624.Rdata")
+path_gvi <- paste0(stub0, "ugs/after_points_100425_citynames.rds")
 path_ghs_urbcentres <- paste0(stub0, "boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # GHS Urban Centre Database (R2019A) https://human-settlement.emergency.copernicus.eu/download.php?ds=ucdb
 path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/records/8419340
 
@@ -48,24 +48,14 @@ min_max_avg <- min_max_avg_sel
 # rowCustoms <- ifelse(min_max_avg=="mean", rowMeans, ifelse(min_max_avg=="max", rowMaxs, rowMins))
 rowCustoms <- rowMeans
 
-##
-
-load(path_gvi) # Variable is called 'out_ndvi_m'.
-
 # GHS data ------------------------------------------------------------
 ghs <- read_sf(path_ghs_urbcentres) # Cities database
-ghs_top10 <- ghs %>% # Filter by 10 largest cities per region
-  group_by(GRGN_L2) %>% # Group by Geographical Region (UNDESA, 2018b)
-  slice_max(P15, n = 10) %>% # Filter for the largest 10 cities each using P15, which is population in 2015
-  ungroup()
 
 # Process the data
 # Assign city names -------------------------------------------------------
 # Assignment is based on the first part of 'id' column, which has been previously mapped to lat/lon
-out_ndvi_m$city <- ghs_top10$UC_NM_MN[as.numeric((sapply(strsplit(out_ndvi_m$id,"_"), `[`, 1)))]
-# Assign country names. Assignment is based on the first part of 'id' column, which has been previously mapped to lat/lon.
-out_ndvi_m$country <- ghs_top10$CTR_MN_NM[as.numeric((sapply(strsplit(out_ndvi_m$id,"_"), `[`, 1)))]
-# filter city
+
+out_ndvi_m <- read_rds(path_gvi)
 
 # ######
 # 
@@ -126,7 +116,31 @@ out_ndvi_m = dplyr::filter(out_ndvi_m, city!="Newcastle")
 ff = list.files(pattern=paste0("WBGT_year_daily_", min_max_avg, "_"), path="H:/ECIP/Falchetta/Downloads/compressed_daily", full.name=T, recursive=T)
 ff_c = list.dirs( path="H:/ECIP/Falchetta/Downloads/compressed_daily", full.names = F, recursive = F)
 
-for(city_n in which(ff_c %in% out_ndvi_m$city)){
+###
+
+nearest_word_match <- function(vec1, vec2, method = "lv") {
+  library(stringdist)
+  
+  dist_matrix <- stringdistmatrix(vec1, vec2, method = method)
+  nearest_indices <- apply(dist_matrix, 1, which.min)
+  
+  data.frame(
+    original = vec1,
+    closest_match = vec2[nearest_indices],
+    distance = dist_matrix[cbind(1:length(vec1), nearest_indices)],
+    stringsAsFactors = FALSE
+  )
+}
+
+nnn <- nearest_word_match(unique(out_ndvi_m$city), ff_c)
+nnn <- dplyr::filter(nnn, original!="Nassau")
+nnn$distance <- NULL
+colnames(nnn) <- c("city", "city_provide")
+
+out_ndvi_m <- merge(out_ndvi_m, nnn, "city")
+
+
+for(city_n in which(ff_c %in% out_ndvi_m$city_provide)){
   
   print(city_n)
   
@@ -147,6 +161,12 @@ for(city_n in which(ff_c %in% out_ndvi_m$city)){
   # GVI data --------------------------------------------------------
   
   out_ndvi_m_f = out_ndvi_m %>% dplyr::filter(name_PROVIDE==tolower(ff_c)[city_n])
+  
+  if(city_n==135){
+    
+    out_ndvi_m_f <- dplyr::filter(out_ndvi_m_f, country=="ES")
+    
+  }
   
   out_ndvi_m_f = dplyr::group_by(out_ndvi_m_f, x, y, city, country) %>% dplyr::summarise(out_b=mean(out_b, na.rm=T))
   
@@ -185,7 +205,7 @@ for(city_n in which(ff_c %in% out_ndvi_m$city)){
   # collapse to mean of daily max for each month
   
   ## rowMedians
-  tas_out_m1_m <- pblapply(1:12, function(X){rowCustoms(as.matrix(WBGT_out[,month(unique(as.Date(time(proj_city)[1:365])))==X]), na.rm=T)})
+  tas_out_m1_m <- pblapply(1:12, function(X){rowCustoms(as.matrix(WBGT_out[,lubridate::month(unique(as.Date(time(proj_city)[1:365])))==X]), na.rm=T)})
   tas_out_m1_m <- bind_cols(tas_out_m1_m)
   tas_out_m1_m <- tas_out_m1_m
   names(tas_out_m1_m) <- paste0("mean.WBGT_m", 1:12)
@@ -246,7 +266,7 @@ for(city_n in which(ff_c %in% out_ndvi_m$city)){
   # options(timeout = 300)
   # download.file("https://globalland.cls.fr/webResources/catalogTree/netcdf/water_bodies/wb_300m_v2_monthly/2023/20230601/c_gls_WB300_202306010000_GLOBE_S2_V2.0.1.nc", mode="wb", destfile = "c_gls_WB300_202306010000_GLOBE_S2_V2.0.1.nc", time=120)
   #https://land.copernicus.eu/en/products/water-bodies/water-bodies-global-v2-0-300m#general_info
-  water <- rast("c_gls_WB300_202306010000_GLOBE_S2_V2.0.1.nc", lyrs="WB")
+  water <- rast("old/c_gls_WB300_202306010000_GLOBE_S2_V2.0.1.nc", lyrs="WB")
   out_ndvi_m_f$water <- exact_extract(water, out_ndvi_m_f, "max")
   out_ndvi_m_f$water  <- ifelse(is.na(out_ndvi_m_f$water), 0, out_ndvi_m_f$water)
   
@@ -288,20 +308,23 @@ for(city_n in which(ff_c %in% out_ndvi_m$city)){
   
   out_ndvi_m_monthly_stats <- out_ndvi_m_monthly %>% group_by(city, lcz, variable) %>% dplyr::summarise(value=mean(value, na.rm=T))
   
-  write.csv(out_ndvi_m_monthly_stats, paste0("results/wbgt_stats_", min_max_avg, "_", ff_c[city_n], ".csv"))
+  write.csv(out_ndvi_m_monthly_stats, paste0("results/URBCLIM_historical/wbgt_/wbgt_stats_", min_max_avg, "_", ff_c[city_n], ".csv"))
   
 #
   
-  write.csv(out_ndvi_m_monthly %>% dplyr::select(city, lcz, variable, value), paste0("results/wbgt_data_", min_max_avg, "_", ff_c[city_n], ".csv"))
+  write.csv(out_ndvi_m_monthly %>% dplyr::select(city, lcz, variable, value), paste0("results/URBCLIM_historical/wbgt_/wbgt_data_", min_max_avg, "_", ff_c[city_n], ".csv"))
   
   ##
   ##
   m1 <- feols(value ~  out_b:lcz + build_h + build_v + elevation + water  | variable, data=out_ndvi_m_monthly)
   summary(m1, "cluster")
   
+  saveRDS(broom::tidy(m1), file = paste0("results/URBCLIM_historical/regressions_/city_monthly_regression_", ff_c[city_n], "_", min_max_avg, "_wbgt.rds")) # Export as .tex
+  
+  
   # + build_h + build_v + pop_dens + water + elevation
   
-  plot_predictions(m1, condition = list("out_b", "variable"=c(1:12), "lcz"))
+  # plot_predictions(m1, condition = list("out_b", "variable"=c(1:12), "lcz"))
   
   #
   
@@ -334,10 +357,14 @@ for(city_n in which(ff_c %in% out_ndvi_m$city)){
     ggtitle("% change in monthly WBGT from GVI marginal change")+
     ylab("Marginal change")
   
-  ggsave(paste0("results/city_monthly_elasticities_lcz_pctg_", ff_c[city_n], "_", min_max_avg, "_wgbt.png"), height = 4, width = 6, scale=1.4)
+  ggsave(paste0("results/URBCLIM_historical/figures/city_monthly_elasticities_lcz_pctg_", ff_c[city_n], "_", min_max_avg, "_wgbt.png"), height = 4, width = 6, scale=1.4)
   
-  write.csv(result, paste0("results/monthly_coefs_", ff_c[city_n], "_", min_max_avg, "_wbgt.csv"))
+  write.csv(result, paste0("results/URBCLIM_historical/monthly_coefs/monthly_coefs_", ff_c[city_n], "_", min_max_avg, "_wbgt.csv"))
   
 }
 
 }
+
+####
+
+setwd(paste0(stub0, "/URGED"))

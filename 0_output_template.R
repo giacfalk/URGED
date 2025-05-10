@@ -19,7 +19,7 @@ stub0 <- paste0(getwd(), "/") # Base working directory
 # Paths -------------------------------------------------------------------
 path_cities <- paste0(stub0, "results/cities_database_climatezones.gpkg")
 path_provide <- paste0(stub0, "climate/provide_urban_climate_data/")
-path_gvi <- paste0(stub0, "ugs/after_points_030624.Rdata")
+path_gvi <- paste0(stub0, "ugs/after_points_100425.Rdata")
 path_ghs_urbcentres <- paste0(stub0, "boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # GHS Urban Centre Database (R2019A) https://human-settlement.emergency.copernicus.eu/download.php?ds=ucdb
 path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/records/8419340
 
@@ -27,7 +27,7 @@ path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/
 
 library(stars)
 
-template <- read_stars("F:/.shortcut-targets-by-id/1JhN0qxmpnYQDoWQdBhnYKzbRCVGH_WXE/6-Projections/rscripts/global_spline/accreu/data/output/cdd/ukesm1-0-ll_r1i1p1f2_w5e5_ssp370_tas_global_daily_2091_2100_cdd24.tif")
+template <- read_stars(paste0(stub0, "climate/", "ukesm1-0-ll_r1i1p1f2_w5e5_ssp370_tas_global_daily_2091_2100_cdd24.tif"))
 
 template = st_as_sf(template)
 
@@ -68,7 +68,7 @@ lcz <- raster(path_lcz)
 
 library(stars)
 
-template <- read_stars("F:/.shortcut-targets-by-id/1JhN0qxmpnYQDoWQdBhnYKzbRCVGH_WXE/6-Projections/rscripts/global_spline/accreu/data/output/cdd/ukesm1-0-ll_r1i1p1f2_w5e5_ssp370_tas_global_daily_2091_2100_cdd24.tif")
+template <- read_stars(paste0(stub0, "climate/", "ukesm1-0-ll_r1i1p1f2_w5e5_ssp370_tas_global_daily_2091_2100_cdd24.tif"))
 
 template = st_as_sf(template)
 
@@ -138,4 +138,7 @@ out_ndvi_m[is.na(out_ndvi_m)] <- 0
 
 write_rds(out_ndvi_m, "results/output_template_ce_cities.rds")
 
+####
+
+setwd(paste0(stub0, "/URGED"))
 

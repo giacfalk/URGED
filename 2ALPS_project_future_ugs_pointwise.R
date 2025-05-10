@@ -13,9 +13,9 @@ library(tidyverse)
 # library(sf)
 
 # Source helper files and functions ---------------------------------------
-source("URGED/fcts_labelers_colors.R")
-source("URGED/fcts_helpers_debug.R")
-source("URGED/fct_scenarios.R") # Here the "filtering" function can be found
+source("URGED/support/fcts_labelers_colors.R")
+source("URGED/support/fcts_helpers_debug.R")
+source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
 
 # Variables
 slopfac1 = 0.50 # Slope factor for the envelope of x% more growth than historically
@@ -26,12 +26,12 @@ list_samplecities <- c("Abidjan", "Berlin", "Miami", "Singapore")
 
 # Directories and settings ----------------------------
 ## Input
-path_ugs_complete <- "ugs/after_points_030624_completedatabase.rds" # Citynames added in 1b_..
+path_ugs_complete <- "ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
 path_highestobs <- "ugs/dfhighestobs.rds" # Highest observations and 10% / 90% percentiles as made in '2e_frontrunner...'
 ## Output
 path_results <- "results/scenarios_ALPS/"
-file_out_df_rds <- paste0(path_results, "dfscen_pointlevel.rds")
-file_out_df_csv <- paste0(path_results, "dfscen_pointlevel.csv")
+file_out_df_rds <- paste0(path_results, "dfscen_pointlevel_ALPS.rds")
+file_out_df_csv <- paste0(path_results, "dfscen_pointlevel_ALPS.csv")
 
 # Code ########################################################################################
 
@@ -235,7 +235,7 @@ ggplot(data = dfplot2,
     fill = guide_legend(order = 1, nrow = 3),          # Ensure color is first
     linetype = guide_legend(order = 2, nrow = 3)        # Ensure linetype is second
   )
-outname <- paste0(path_results, "bylcz_simplenevelope_samplecities_new_legend.png")
+outname <- paste0(path_results, "bylcz_simplenevelope_samplecities_new_legend_ALPS.png")
 ggsave(filename = outname, width = 16.5, height = 13, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
 
 # Show the same for ALL CITIES
@@ -261,7 +261,7 @@ ggplot(data = dfplot,
         axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
         legend.key.size = unit(0.2, "cm"))
-outname <- paste0(path_results, "bylcz_simplenevelope_allcities.png")
+outname <- paste0(path_results, "bylcz_simplenevelope_allcities_ALPS.png")
 ggsave(filename = outname, width = 90, height = 60, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
 
 # Show number of points byLCZ for each city
@@ -281,7 +281,7 @@ ggplot(data = dfplot,
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0, size = 6),
         legend.key.size = unit(0.2, "cm"))
 
-outname <- paste0(path_results, "npoints_by_lcz_allcities.png")
+outname <- paste0(path_results, "npoints_by_lcz_allcities_ALPS.png")
 ggsave(filename = outname, width = 30, height = 20, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
 
  # Plot the theoretical limits for climate and lcz
@@ -305,7 +305,7 @@ ggplot(data = dfplot,
         axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 66, hjust = 1),
         legend.key.size = unit(0.2, "cm"))
-outname <- paste0(path_results, "out_b_max_100_dodged.png")
+outname <- paste0(path_results, "out_b_max_100_dodged_ALPS.png")
 ggsave(filename = outname, width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
 
 # Descriptive statistics of dfscen
@@ -327,10 +327,14 @@ ggplot(data = dfplot, aes(x = lcz_filter_v3, y = out_b_mean_st, color = Cls_shor
         axis.text.x = element_text(angle = 45, hjust = 1),
         legend.key.size = unit(0.2, "cm")) +
   ylab("Mean observed GVI")
-outname <- paste0(path_results, "boxplot_out_b_mean_st.png")
+outname <- paste0(path_results, "boxplot_out_b_mean_st_ALPS.png")
 ggsave(filename = outname, width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300)
 
 # Show 
 
 
 # Determine historical growth rate
+
+####
+
+setwd(paste0(stub0, "/URGED"))

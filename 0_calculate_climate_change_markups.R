@@ -89,3 +89,7 @@ result <- r[, lapply(.SD, mean, na.rm = TRUE), by = .(var, pctl, city, year, cli
 ###
 
 saveRDS(result, "results/scenarios/climate_change_provide_markups.rds")
+
+####
+
+setwd(paste0(stub0, "/URGED"))

@@ -12,13 +12,13 @@ conflicts_prefer(dplyr::filter)
 library(tidyverse)
 library(terra) # For the LCZ data inclusion
 # Source helper files and functions -----------------------------------------------
-source("URGED/fcts_labelers_colors.R")
-source("URGED/fcts_helpers_debug.R")
+source("URGED/support/fcts_labelers_colors.R")
+source("URGED/support/fcts_helpers_debug.R")
 # Directories and settings ----------------------------
 ## Input
 path_data_citymean <- "results/scenarios/dfscenarios.rds" # These are the scenarios generated in 
 path_ghsnames <- "results/ghs_subregion_Cls.rds" # Needed for merging with path_data_citymean
-path_ugs_database <- "ugs/after_points_030624_completedatabase.rds" # The UGS database containing points from all 180 cities with GHS and LCZ and KGC information. From 0_build_ugspoints_database
+path_ugs_database <- "ugs/after_points_100425_completedatabase.rds" # The UGS database containing points from all 180 cities with GHS and LCZ and KGC information. From 0_build_ugspoints_database
 
 ## Output
 path_results <- "ugs/"
@@ -185,4 +185,5 @@ ggplot(data = dfplot, aes(x = Cls, y = GVIm, color = GRGN_L2)) +
        y = "Green View Index",
        color = "Sub-region")
 ggsave(paste0("results/scenarios/top3cities_byKGC.png"), width = 25, height = 14, units = "cm", bg = "white", dpi = 300)
- 
+
+####

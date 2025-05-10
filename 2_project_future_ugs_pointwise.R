@@ -13,18 +13,16 @@ library(tidyverse)
 # library(sf)
 
 # Source helper files and functions ---------------------------------------
-source("URGED/fcts_labelers_colors.R") # Here also the samplecities are defined
-source("URGED/fcts_helpers_debug.R")
-source("URGED/fct_scenarios.R") # Here the "filtering" function can be found
-
+source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
+source("URGED/support/fcts_helpers_debug.R")
+source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
 # Variables
-slopfac1 = 0.50 # Slope factor for the envelope of x% more growth than historically
-fac2050a = 0.25 # Make GVI 25% larger than current value by 2050
-fac2050b = 0.5 # Make GVI 50% larger than current value by 2050
-
+# slopfac1 = 0.50 # Slope factor for the envelope of x% more growth than historically
+# fac2050a = 0.25 # Make GVI 25% larger than current value by 2050
+# fac2050b = 0.5 # Make GVI 50% larger than current value by 2050
 # Directories and settings ----------------------------
 ## Input
-path_ugs_complete <- "ugs/after_points_030624_completedatabase.rds" # Citynames added in 1b_..
+path_ugs_complete <- "ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
 path_highestobs <- "ugs/dfhighestobs.rds" # Highest observations and 10% / 90% percentiles as made in '2e_ugs_frontrunner_cities.R'
 ## Output
 path_results <- "results/scenarios/"
@@ -93,10 +91,37 @@ dfspattemp <- dfspattemp %>%
   ungroup()
 
 # _s stands for spatial average, _st stands for spatial and temporal average
+# For large datasets, we need to split the data.frame into two smaller chunks to make the merging work
+citylist <- dfspat$city %>%
+  unique() %>%
+  sort()
 
+# dfspat <- dfspat %>% dplyr::filter(city != "Newcastle")
+# dfspattemp <- dfspattemp %>% dplyr::filter(city != "Newcastle")
 dftemp <- merge(dfspat, dfspattemp,
-                by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls",
-                       "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+                 by = c("city", "id", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+
+# cutcity1 <- 2
+# cutcity2 <- 10
+# citylist1 <- citylist[1:cutcity1]
+# citylist2 <- citylist[(cutcity1+1):cutcity2]
+# citylist3 <- citylist[(cutcity1+1):length(citylist)]
+# dfspat1 <- dfspat %>% dplyr::filter(city %in% citylist1)
+# dfspat2 <- dfspat %>% dplyr::filter(city %in% citylist2)
+# dfspat3 <- dfspat %>% dplyr::filter(city %in% citylist3)
+# dfspattemp1 <- dfspattemp %>% dplyr::filter(city %in% citylist1)
+# dfspattemp2 <- dfspattemp %>% dplyr::filter(city %in% citylist2)
+# dfspattemp3 <- dfspattemp %>% dplyr::filter(city %in% citylist3)
+# 
+# dftemp1 <- merge(dfspat1, dfspattemp1,
+#                 by = c("city", "id", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+# dftemp2 <- merge(dfspat2, dfspattemp2,
+#                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+# dftemp3 <- merge(dfspat3, dfspattemp3,
+#                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
+# dftemp <- row_bind(dftemp1, dftemp2, dftemp3)
+
+
 # Merge with the "highest observed" dataset.
 dfhighestobs <- read_rds(path_highestobs)
 df <- merge(dftemp, dfhighestobs, by = c("Cls_short", "lcz_filter_v3"), all.x = T)
@@ -162,7 +187,6 @@ dfscen <- merge(dffuture, df, all = T)
 # (vi) “GVI_projb_lwr” - This is the lower boundary of the “b” scenario. It assumes a 50% decrease of SGS starting from the year 2023 to 2050, starting from the 25% percentile of the observed SGS for the 2016 - 2023 period.
 
 write_rds(dfscen, "results/scenarios/dfscen_pointlevel.rds")
-write_csv(dfscen, "results/scenarios/dfscen_pointlevel.csv")
 
 # Plot the evolution of the scenarios for four sample cities
 dfplot <- dfscen %>%
@@ -348,3 +372,6 @@ ggplot(data = dfplot, aes(x = lcz_filter_v3, y = out_b_mean_st, color = Cls_shor
   ylab("Mean observed GVI")
 outname <- paste0(path_results, "boxplot_out_b_mean_st.png")
 ggsave(filename = outname, width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300)
+####
+
+setwd(paste0(stub0, "/URGED"))

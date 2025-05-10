@@ -10,9 +10,9 @@ library(tidyverse)
 library(sf)
 
 # Source helper files and functions ---------------------------------------
-source("URGED/fcts_labelers_colors.R")
-source("URGED/fcts_helpers_debug.R")
-source("URGED/fct_scenarios.R") # Here the "boosting" function can be found
+source("URGED/support/fcts_labelers_colors.R")
+source("URGED/support/fcts_helpers_debug.R")
+source("URGED/support/fct_scenarios.R") # Here the "boosting" function can be found
 
 # Variables
 slopfac1 = 0.50 # Slope factor for the envelope of x% more growth than historically
@@ -25,8 +25,10 @@ list_samplecities <- c("Abidjan", "Auckland", "Berlin", "Cape Town", "Guadalajar
 ## Input
 path_data <- "data_provide_cdh_gvi_143cities_withcovariates.rds"
 path_cities_provide <- paste0("climate/provide_urban_climate_data/cities_provide.csv")
-path_ugs <- "ugs/after_points_030624.RData" # The input used in 1b_ugs_heat_metrics.R
-path_ugs_citynames <- "ugs/after_points_030624_citynames.rds" # Citynames added in 1b_..
+# path_ugs <- "ugs/after_points_030624.RData" # The input used in 1b_ugs_heat_metrics.R
+path_ugs <- "ugs/after_points_100425_completedatabase.RData" # The input used in 1b_ugs_heat_metrics.R
+# path_ugs_citynames <- "ugs/after_points_030624_citynames.rds" # Citynames added in 1b_..
+path_ugs_citynames <- "ugs/after_points_100425_citynames.rds" # Citynames added in 1b_..
 path_highestobs <- "ugs/dfhighestobs.rds"
 ## Output
 path_results <- "results/scenarios/"
