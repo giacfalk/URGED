@@ -62,12 +62,12 @@ source("0_wbt_wbgt.R") # This script computes an estimation of future wet bulb g
 ########
 source("2_ugs_frontrunner_cities.R")  # determine lower and upper bounds of SGS by main KGC as well as LCZ
 source("2_project_future_ugs_pointwise.R") # attempt to project GVI at the point level 
-source("2ALPS_project_future_ugs_pointwise.R") # attempt to project GVI at the city level (ALPS project variant)
+# source("2ALPS_project_future_ugs_pointwise.R") # attempt to project GVI at the city level (ALPS project variant)
 ########
 ########
 
 source("3_write_output_chilled.R") # write outputs from empirical and projection analysis, to be used to run policy simulations and produce results summary plots and tables
-source("3_write_output_chilled_ALPS.R") # write outputs from empirical and projection analysis, to be used to run policy simulations and produce results summary plots and tables (ALPS project variant)
+# source("3_write_output_chilled_ALPS.R") # write outputs from empirical and projection analysis, to be used to run policy simulations and produce results summary plots and tables (ALPS project variant)
 
 ########
 ########

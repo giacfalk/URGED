@@ -24,8 +24,16 @@ path_highestobs <- "ugs/dfhighestobs.rds" # Highest observations and 10% / 90% p
 path_results <- "results/scenarios/"
 file_out_df <- paste0(path_results, "dfscenarios_pointlevel.rds")
 
+
 # Code #
-# Determine highest and lowest observations ---------------------------
+# Pre-process data and add city names -------------------------------------
+ugs <- read_rds(path_ugs_complete)
+ugs <- ugs %>% 
+  filter(city != "N/A") %>% # Drop one row with a bad city name
+  filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
+  select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
+
+# First determine highest and lowest observations ---------------------------
 dffrontrunners <- ugs %>%
   dplyr::filter(lcz_filter_v3 <= 10) %>%   # Filter the land cover classes that are not urban (i.e. lcz_filter_v3 <= 10)
   dplyr::filter(lcz_filter_v3 != 7) %>% # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
@@ -40,18 +48,13 @@ dffrontrunners <- ugs %>%
   dplyr::select(-ID, -out_b, -x, -y, -year) %>%
   select(-country, -CTR_MN_ISO,-GRGN_L1,-GRGN_L2,-UC_NM_LST, EL_AV_ALS) %>%
   distinct()
+
 dfhighestobs <- dffrontrunners %>%
   select(Cls_short, lcz_filter_v3, starts_with("bound")) %>%
   distinct()
+
 # Save to file
 saveRDS(dfhighestobs, file = paste0("ugs/dfhighestobs.rds"))
-
-# Pre-process data and add city names -------------------------------------
-ugs <- read_rds(path_ugs_complete)
-ugs <- ugs %>% 
-  filter(city != "N/A") %>% # Drop one row with a bad city name
-  filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
-  select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
 
 # First get share of LCZ and KGZ per city
 ## Create spatial averages, but still organized per year.
@@ -116,7 +119,7 @@ citylist <- dfspat$city %>%
 dftemp <- merge(dfspat, dfspattemp,
                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
 
-# Merge with the "highest and lowest observed" dataset
+# Merge with the "highest and lowest observed" dataset created earlier.
 df <- merge(dftemp, dfhighestobs, by = c("Cls_short", "lcz_filter_v3"), all.x = T)
 
 # The data.frame df now contains the GVI values on spatial average, as well as spatio-temporal average. Classified by LCZ and Cls_short.
@@ -132,27 +135,14 @@ dffuture <- df %>%
   # Here, compute the scenarios of a) reference with climate impacts, b) moderate ambition, c) high ambition
   mutate(ugs_scen_impacted =
            ugs_ref + (out_b_quart_lwr - ugs_ref) * (year - 2020)/(2050 - 2020),
-         # ugs_ref_climateimpacts =
-           # ugs_ref * (1 - (ugs_ref - out_b_quart_lwr)/ugs_ref * (year - 2020)/(2050 - 2020)),
          ugs_scen_mod =
            ugs_ref + (out_b_quart_upr - ugs_ref) * (year - 2020)/(2050 - 2020),
          ugs_scen_hgh =
-           ugs_ref + (boundupr - ugs_ref) * (year - 2020)/(2050 - 2020),
-         # ugs_ambition_mod = ugs_ref * (1 + fac_mod * (year - 2020)/(2050 - 2020)),
-         # ugs_ambition_hgh = ugs_ref * (1 + fac_hgh * (year - 2020)/(2050 - 2020))
+           ugs_ref + (boundupr - ugs_ref) * (year - 2020)/(2050 - 2020)
          )
 
-  # mutate(GVI_proja_upr = out_b_mean_st * (1 + fac2050a * (year - yearlatest)/(2050 - yearlatest)),
-  #        GVI_proja_lwr = out_b_mean_st * (1 - fac2050a * (year - yearlatest)/(2050 - yearlatest)), 
-  #        GVI_projb_upr = out_b_mean_st * (1 + fac2050b * (year - yearlatest)/(2050 - yearlatest)),
-  #        GVI_projb_lwr = out_b_mean_st * (1 - fac2050b * (year - yearlatest)/(2050 - yearlatest))
-  # mutate(GVI_proja_upr = out_b_quart_upr * (1 + fac2050a * (year - yearlatest)/(2050 - yearlatest))) %>%
-         # GVI_proja_lwr = out_b_quart_lwr * (1 - fac2050a * (year - yearlatest)/(2050 - yearlatest)), 
-         # GVI_projb_upr = out_b_quart_upr * (1 + fac2050b * (year - yearlatest)/(2050 - yearlatest)),
-         # GVI_projb_lwr = out_b_quart_lwr * (1 - fac2050b * (year - yearlatest)/(2050 - yearlatest))
-
 # Constrain the projected values by the observed lower and upper values
-## This is up for experimentation, we use quintiles
+## (Merged earlier above in the code)
 dffuture <- dffuture %>%
   mutate(hitboundsa = ifelse(ugs_scen_mod > boundupr, "Yes", "No"),
          hitboundsb = ifelse(ugs_scen_hgh > boundupr, "Yes", "No")) %>%
@@ -160,20 +150,12 @@ dffuture <- dffuture %>%
            ifelse(hitboundsa == "Yes", boundupr, ugs_scen_mod),
          ugs_scen_hgh =
            ifelse(hitboundsb == "Yes", boundupr, ugs_scen_hgh),
-         # GVI_proja_lwr =
-         #   ifelse(GVI_proja_lwr < boundlwr, boundlwr, GVI_proja_lwr),
-         # GVI_projb_lwr =
-         #   ifelse(GVI_projb_lwr < boundlwr, boundlwr, GVI_projb_lwr)
          )
 
 # Merge the future data with the historic data in df
 dfscen <- merge(dffuture, df, all = T)
 
 write_rds(dfscen, "results/scenarios/dfscen_pointlevel.rds")
-
-
-
-
 
 
 ################
