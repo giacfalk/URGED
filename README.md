@@ -30,10 +30,14 @@ Colnames:
 
 	"city" "country" "id" "year" "x" "y" "out_b" "ID" "lcz_filter_v3" "ID_HDC_G0"
 	"CTR_MN_ISO" "GRGN_L1" "GRGN_L2" "UC_NM_LST" "EL_AV_ALS" "Cls" "Cls_short" 
-Attn! Here, we have variables id and ID! 
+Attn! Here, we have variables id and ID which may break some grouping routines! 
 
-## Cities
+## Cities in the analysis
+### SGS side
 `ugs/after_points_100425_completedatabase.rds` contains 357 entries
+### PROVIDE side
+
+### Intersecting the data sets
 
 
 
