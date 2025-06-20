@@ -136,7 +136,7 @@ dffuture <- df %>%
   distinct() %>%
   expand_grid(year = future_years, .) %>%
   mutate(ugs_ref = out_b_median_st) %>%
-  # Here, compute the scenarios of a) reference with climate impacts, b) moderate ambition, c) high ambition
+  # Here, compute the scenarios of a) reference with Decreased provision, b) moderate ambition, c) high ambition
   mutate(ugs_scen_impacted =
            ugs_ref + (out_b_quart_lwr - ugs_ref) * (year - 2020)/(2050 - 2020),
          # ugs_ref_climateimpacts =
@@ -197,7 +197,7 @@ dfplot <- dfplot %>% # For using linetype as legend, we need to further modify d
   # Rename "GVI_proj_a" to "upper scenario"
   mutate(scen = factor(scen,
                        levels = c("ugs_scen_impacted", "ugs_scen_mod", "ugs_scen_hgh"),
-                       labels = c("Climate impacts", "Moderate ambition", "High ambition")))
+                       labels = c("Decreased provision", "Moderate ambition", "High ambition")))
 
 # Create a data.frame to show the observed variation in the historical data. It is easier to display this from a new data.frame, and not using dfplot2.
 dfplot_histav <- dfplot %>%
@@ -263,7 +263,7 @@ dfplot_all <- dfplot_all %>% # For using linetype as legend, we need to further 
   # Rename "GVI_proj_a" to "upper scenario"
   mutate(scen = factor(scen,
                        levels = c("ugs_scen_impacted", "ugs_scen_mod", "ugs_scen_hgh"),
-                       labels = c("Climate impacts", "Moderate ambition", "High ambition")))
+                       labels = c("Decreased provision", "Moderate ambition", "High ambition")))
 
 # Create a data.frame to show the observed variation in the historical data. It is easier to display this from a new data.frame, and not using dfplot2.
 dfplot_histav_all <- dfplot_all %>%

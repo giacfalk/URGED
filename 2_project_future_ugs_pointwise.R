@@ -25,13 +25,13 @@ path_results <- "results/scenarios/"
 file_out_df <- paste0(path_results, "dfscenarios_pointlevel.rds")
 
 
-# Code #
-# Pre-process data and add city names -------------------------------------
-ugs <- read_rds(path_ugs_complete)
-ugs <- ugs %>% 
-  filter(city != "N/A") %>% # Drop one row with a bad city name
-  filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
-  select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
+  # Code #
+  # Pre-process data and add city names -------------------------------------
+  ugs <- read_rds(path_ugs_complete)
+  ugs <- ugs %>% 
+    filter(city != "N/A") %>% # Drop one row with a bad city name
+    filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
+    select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
 
 # First determine highest and lowest observations ---------------------------
 dffrontrunners <- ugs %>%
@@ -132,7 +132,7 @@ dffuture <- df %>%
   distinct() %>%
   expand_grid(year = future_years, .) %>%
   mutate(ugs_ref = out_b_median_st) %>%
-  # Here, compute the scenarios of a) reference with climate impacts, b) moderate ambition, c) high ambition
+  # Here, compute the scenarios of a) reference with Decreased provision, b) moderate ambition, c) high ambition
   mutate(ugs_scen_impacted =
            ugs_ref + (out_b_quart_lwr - ugs_ref) * (year - 2020)/(2050 - 2020),
          ugs_scen_mod =
@@ -153,10 +153,14 @@ dffuture <- dffuture %>%
          )
 
 # Merge the future data with the historic data in df
-dfscen <- merge(dffuture, df, all = T)
+dfscen <- merge(dffuture, df %>% dplyr::select(-base::intersect(colnames(df), colnames(dffuture))[-c(3:4)]), by=c("city", "country"))
+dfscen <- na.omit(dfscen)
+
+#####
 
 write_rds(dfscen, "results/scenarios/dfscen_pointlevel.rds")
 
+list_samplecities <- c("Abidjan", "Cairo", "Los Angeles", "Boston")
 
 ################
 # Some plotting
@@ -169,15 +173,17 @@ dfplot <- dfplot %>% # For using linetype as legend, we need to further modify d
   # Rename "GVI_proj_a" to "upper scenario"
   mutate(scen = factor(scen,
                        levels = c("ugs_scen_impacted", "ugs_scen_mod", "ugs_scen_hgh"),
-                       labels = c("Climate impacts", "Moderate ambition", "High ambition")))
+                       labels = c("Decreased provision", "Moderate ambition", "High ambition")))
 
 # Create a data.frame to show the observed variation in the historical data. It is easier to display this from a new data.frame, and not using dfplot2.
 dfplot_histav <- dfplot %>%
-  dplyr::filter(year == 2020) %>%
+  dplyr::filter(year == 2025) %>%
   select(city, year, scen, lcz_filter_v3, out_b_mean_st, out_b_min_st, out_b_max_st, starts_with("out_b_quart")) %>%
   distinct() %>%
   group_by(city) %>%
   mutate(year_jittered = 2016 + as.integer(lcz_filter_v3) / 1.1)
+
+dfplot$labeller <- paste0(dfplot$city, ", KGC = ", dfplot$Cls_short)
 
 ggplot(data = dfplot,
        aes(x = year,
@@ -204,12 +210,12 @@ ggplot(data = dfplot,
                     ymax = out_b_quart_upr), width = 0.5) +
   # geom_point(aes(y = GVI[length(GVI)-1])) +
   theme_minimal(base_size = 9) +
-  facet_wrap(~city) +
+  facet_wrap(~labeller) +
   theme_minimal() +
   ylab("Street Green Space (GVI)") +
   scale_fill_manual(values = colors_lcz) +
   scale_color_manual(values = colors_lcz) +
-  scale_x_continuous(breaks = c(2020, 2025, 2030, 2035, 2040, 2045, 2050)) +
+  scale_x_continuous(breaks = c(2020, 2025, 2030, 2035, 2040, 2045, 2050), labels = c("2016-2023", 2025, 2030, 2035, 2040, 2045, 2050)) +
   scale_linetype_manual(values = c("dotted", "solid", "twodash")) +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -223,7 +229,7 @@ ggplot(data = dfplot,
   )
 outname <- paste0(path_results, "bylcz_simplenevelope_samplecities.png")
 ggsave(filename = outname, width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
-ggsave(filename = "~/Library/CloudStorage/Dropbox/Apps/Overleaf/URGED_papers/figures/GVI-scenarios/bylcz_simplenevelope_samplecities.png", width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300, limitsize = FALSE) # Also safe for use in Overleaf
+# ggsave(filename = "~/Library/CloudStorage/Dropbox/Apps/Overleaf/URGED_papers/figures/GVI-scenarios/bylcz_simplenevelope_samplecities.png", width = 16.5, height = 12, units = "cm", bg = "white", dpi = 300, limitsize = FALSE) # Also safe for use in Overleaf
 
 ###############
 # Show the same for ALL CITIES
@@ -235,7 +241,7 @@ dfplot_all <- dfplot_all %>% # For using linetype as legend, we need to further 
   # Rename "GVI_proj_a" to "upper scenario"
   mutate(scen = factor(scen,
                        levels = c("ugs_scen_impacted", "ugs_scen_mod", "ugs_scen_hgh"),
-                       labels = c("Climate impacts", "Moderate ambition", "High ambition")))
+                       labels = c("Decreased provision", "Moderate ambition", "High ambition")))
 
 # Create a data.frame to show the observed variation in the historical data. It is easier to display this from a new data.frame, and not using dfplot2.
 dfplot_histav_all <- dfplot_all %>%
