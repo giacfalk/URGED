@@ -1,42 +1,62 @@
 # Develop scenarios for urban green and associated heat mitigation potential.
 # Here, use the point estimates produced and cluster them by city, country, lcz, kgz.
-rm(list=ls(all=TRUE)) # Removes all previously created variables 
-# Working directory [RStudio] -------------------------------------------------------
-library(rstudioapi)
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-setwd('..') # Move one up
-stub0 <- paste0(getwd(), "/") # Base working directory
-# Libraries etc ----------------------------
-library(conflicted)
-conflicts_prefer(dplyr::filter) # Use the filter command from dplyr, even if stats is loaded
-library(tidyverse)
-# library(sf)
+# rm(list=ls(all=TRUE)) # Removes all previously created variables 
+# # Working directory [RStudio] -------------------------------------------------------
+# library(rstudioapi)
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
+# setwd('..') # Move one up
+# stub0 <- paste0(getwd(), "/") # Base working directory
+# # Libraries etc ----------------------------
+# library(conflicted)
+# conflicts_prefer(dplyr::filter) # Use the filter command from dplyr, even if stats is loaded
+# library(tidyverse)
 
-# Source helper files and functions ---------------------------------------
-source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
-source("URGED/support/fcts_helpers_debug.R")
-source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
-# Directories and settings ----------------------------
+# 
+# # Source helper files and functions ---------------------------------------
+# source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
+# source("URGED/support/fcts_helpers_debug.R")
+# source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
+# # Directories and settings ----------------------------
 ## Input
-path_ugs_complete <- "ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
-path_highestobs <- "ugs/dfhighestobs.rds" # Highest observations and 10% / 90% percentiles as made in '2e_ugs_frontrunner_cities.R'
+path_ugs_complete <- "../ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
+path_highestobs <- "../ugs/dfhighestobs.rds" # Highest observations and 10% / 90% percentiles as made in '2e_ugs_frontrunner_cities.R'
 ## Output
-path_results <- "results/scenarios/"
-file_out_df <- paste0(path_results, "dfscenarios_pointlevel.rds")
+path_results <- "../results/scenarios/"
 
+# Code #
+# Pre-process data and add city names --------------
+ugs <- read_rds(path_ugs_complete)
+ugs <- ugs %>% 
+  filter(city != "N/A") %>% # Drop one row with a bad city name
+  filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
+  select(-id) %>% # Delete the `id` column that wasn't present in the 030624 dataset.
+  dplyr::filter(lcz_filter_v3 <= 10) %>%   # Filter the land cover classes that are not urban (i.e. lcz_filter_v3 <= 10)
+  dplyr::filter(lcz_filter_v3 != 7) # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
 
-  # Code #
-  # Pre-process data and add city names -------------------------------------
-  ugs <- read_rds(path_ugs_complete)
-  ugs <- ugs %>% 
-    filter(city != "N/A") %>% # Drop one row with a bad city name
-    filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
-    select(-id) # Delete the `id` column that wasn't present in the 030624 dataset.
+# Remove points that are in adjacent countries
+ugs <- ugs %>%
+  filter(
+    !(city == "Singapore" & country == "MY"),
+    !(city == "Asuncion" & country == "AR"),
+    !(city == "Basel" & country %in% c("DE", "FR")),
+    !(city == "Buffalo" & country == "CA"),
+    !(city == "Ciudad Juárez" & country == "US"),
+    !(city == "Comilla" & country == "IN"),
+    !(city == "Detroit" & country == "CA"),
+    !(city == "Geneva" & country == "FR"),
+    !(city == "Ghent" & country == "NL"),
+    !(city == "Guangzhou" & country == "HK"),
+    !(city == "Kinshasa" & country == "CG"),
+    !(city == "Lille" & country == "BE"),
+    !(city == "Lomé" & country == "GH"),
+    !(city == "N'Djamena" & country == "CM"),
+    !(city == "N'Djamena" & country == "MY"),
+    !(city == "Strasbourg" & country == "DE"),
+    !(city == "Tijuana" & country == "US")
+  )
 
 # First determine highest and lowest observations ---------------------------
 dffrontrunners <- ugs %>%
-  dplyr::filter(lcz_filter_v3 <= 10) %>%   # Filter the land cover classes that are not urban (i.e. lcz_filter_v3 <= 10)
-  dplyr::filter(lcz_filter_v3 != 7) %>% # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
   group_by(lcz_filter_v3, Cls_short) %>%
   arrange(desc(out_b), .by_group = TRUE) %>% # Sort within each group by value in descending order
   mutate( # Create the 10th and 90th percentile entries
@@ -51,10 +71,9 @@ dffrontrunners <- ugs %>%
 
 dfhighestobs <- dffrontrunners %>%
   select(Cls_short, lcz_filter_v3, starts_with("bound")) %>%
-  distinct()
-
-# Save to file
-saveRDS(dfhighestobs, file = paste0("ugs/dfhighestobs.rds"))
+  distinct() %>%
+  # Remove NA in Cls_short
+  drop_na(Cls_short)
 
 # First get share of LCZ and KGZ per city
 ## Create spatial averages, but still organized per year.
@@ -70,6 +89,7 @@ dfspat <- ugs %>%
   ungroup() %>%
   mutate(yearlatest = max(year))
 
+
 # Add the share of each lcz, making use of the npid... column
 dfspat <- dfspat %>%
   group_by(city, country, year) %>%
@@ -77,6 +97,13 @@ dfspat <- dfspat %>%
   group_by(city, country, year, lcz_filter_v3) %>%
   mutate(lczshare_s = npid_s / sumid_s) %>%
   ungroup()
+
+
+testspat1 <- dfspat %>%
+  filter(city == "Singapore")
+
+testsum <- dfspat %>% select(city, country) %>% distinct()
+testsum <- testsum %>% filter(duplicated(city) | duplicated(city, fromLast = TRUE)) # Only Valencia (ES, VE) remains
 
 # Create spatial *and* temporal averages, i.e. one number per city, country, LCZ, Cls_short. One value for all years 2016-2023.
 dfspattemp <- ugs %>%
@@ -110,24 +137,33 @@ dfspattemp <- dfspattemp %>%
   mutate(lczshare_st = npid_st / sumid_st) %>%
   ungroup()
 
+testspattemp1 <- dfspattemp %>% 
+  filter(city == "Singapore")
+
 # _s stands for spatial average, _st stands for spatial and temporal average
-# For large datasets, we need to split the data.frame into two smaller chunks to make the merging work
-citylist <- dfspat$city %>%
-  unique() %>%
-  sort()
+# Key data.frames `dfspat` (spatially averaged GVI values [over all points], seperated by city and LCZ) and `dfspattemp` (spatially and temporally [2016-2023] averaged GVI values, seperated by city and LCZ).
+# For large datasets, we need to split the data.frame into two smaller chunks to make the merging work on a 2018 Macbook Pro.
 
 dftemp <- merge(dfspat, dfspattemp,
                  by = c("city", "country", "lcz_filter_v3", "Cls_short", "Cls", "ID_HDC_G0", "CTR_MN_ISO", "GRGN_L1", "GRGN_L2", "UC_NM_LST"), all = T)
 
+testdftemp <- dftemp %>%
+  filter(city == "Singapore")
+
 # Merge with the "highest and lowest observed" dataset created earlier.
-df <- merge(dftemp, dfhighestobs, by = c("Cls_short", "lcz_filter_v3"), all.x = T)
+dfugshist <- merge(dftemp, dfhighestobs, by = c("Cls_short", "lcz_filter_v3"), all.x = T)
+
+testdfugshist <- dfugshist %>%
+  filter(city == "Singapore")
+
+rm(dftemp)
 
 # The data.frame df now contains the GVI values on spatial average, as well as spatio-temporal average. Classified by LCZ and Cls_short.
 # Now get make scenarios with 25% and 50% more grwoth by 2050, in analogy to the code in 2e
 future_years <- seq(2025, 2050, by = 5)
 
 ## Based on the spat_temp averages
-dffuture <- df %>%
+dffuture <- dfugshist %>%
   dplyr::select(-year, -npid_s, -sumid_s, -lczshare_s, -out_b_mean_s, -out_b_median_s, -out_b_min_s, -out_b_max_s) %>%
   distinct() %>%
   expand_grid(year = future_years, .) %>%
@@ -151,13 +187,24 @@ dffuture <- dffuture %>%
          ugs_scen_hgh =
            ifelse(hitboundsb == "Yes", boundupr, ugs_scen_hgh),
          )
+dfscen <- dffuture
+testdffuture <- dffuture %>%
+  filter(city == "Singapore")
 
-# Merge the future data with the historic data in df
-dfscen <- merge(dffuture, df %>% dplyr::select(-base::intersect(colnames(df), colnames(dffuture))[-c(3:4)]), by=c("city", "country"))
-dfscen <- na.omit(dfscen)
+# # Merge the future data with the historic data in df
+# dfscen <- merge(dffuture, df %>% dplyr::select(-base::intersect(colnames(df), colnames(dffuture))[-c(3:4)]), by=c("city", "country"))
+# dfscen <- na.omit(dfscen)
+
+testdfscen <- dfscen %>%
+  filter(city == "Singapore")
 
 #####
+# Save results
+write_rds(ugs, file = paste0("../ugs/ugs_cleaned_100425.rds"))
+write_rds(dfhighestobs, file = paste0("../ugs/dfhighestobs.rds"))
+write_rds(dfspat, "../results/scenarios/dfspat.rds")
+write_rds(dfspattemp, "../results/scenarios/dfspattemp.rds")
+write_rds(dfscen, "../results/scenarios/dfscen.rds")
+write_rds(dfscen, "../results/scenarios/dfscen_pointlevel.rds")
 
-write_rds(dfscen, "results/scenarios/dfscen_pointlevel.rds")
-
-setwd(paste0(stub0, "/URGED"))
+# setwd(paste0(stub0, "/URGED"))
