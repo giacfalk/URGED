@@ -1,4 +1,3 @@
-
 ##############################################################################
 
 # This Rscript: 
@@ -22,6 +21,9 @@ require(stargazer)
 require(effects)
 require(marginaleffects)
 library(sf)
+library(conflicted)
+conflicts_prefer(dplyr::filter) # Always use the filter command from dplyr, even if stats is loaded
+conflicts_prefer(dplyr::select) # Always use the select command from dplyr, even if MASS is loaded
 library(rstudioapi)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 setwd('..')
@@ -31,6 +33,11 @@ stub <- paste0(getwd(), "/")
 hbs_dir <- paste0(stub, 'hbs_data/', sep ='')
 
 setwd(paste0(stub, "/URGED"))
+
+# Get helper files
+source("support/fcts_labelers_colors.R") # Here also the samplecities are defined
+source("support/fcts_helpers_debug.R")
+source("support/fct_scenarios.R") # Here the "filtering" function can be found
 
 #################
 #################
@@ -61,7 +68,7 @@ source("0_wbt_wbgt.R") # This script computes an estimation of future wet bulb g
 ########
 ########
 source("2_ugs_frontrunner_cities.R")  # determine lower and upper bounds of SGS by main KGC as well as LCZ
-source("2_project_future_ugs_pointwise.R") # attempt to project GVI at the point level
+source("2_project_future_ugs_pointwise.R") # Project GVI
 # source("2ALPS_project_future_ugs_pointwise.R") # attempt to project GVI at the city level (ALPS project variant)
 ########
 ########
@@ -75,13 +82,13 @@ source("3_write_output_chilled.R") # write outputs from empirical and projection
 source("4_policy_simulation_climate_change_ugs_heat_metrics.r") # perform policy simulation to see effect on heat metrics from GVI policy
 
 ########
-
-# paper scripts
-
+# Paper scripts
 setwd("..")
 source("paper/figures_scripts/fig_1.R")
 source("paper/figures_scripts/regression_boxplots.R")
 source("paper/figures_scripts/table_scenarios.R")
+source("paper/figures_scripts/21_project_future_ugs_pointwise_plotting.R")
+source("paper/figures_scripts/plot_scenarios.R")
 source("paper/figures_scripts/fig_4_new.r")
 source("paper/figures_scripts/map_counterbalancing_wbgt_mean.R")
 source("paper/figures_scripts/map_counterbalancing_tas_min.R")
