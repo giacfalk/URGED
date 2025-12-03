@@ -1,25 +1,23 @@
-# Plot the "frontrunners" or "best cities" for urban green space by climate zone and subregion 
-rm(list=ls(all=TRUE)) # Removes all previously created variables
-
-# Working directory [RStudio] -------------------------------------------------------
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-setwd('..') # Move one up
-stub0 <- paste0(getwd(), "/") # Base working directory
+# # Plot the "frontrunners" or "best cities" for urban green space by climate zone and subregion 
+# rm(list=ls(all=TRUE)) # Removes all previously created variables
+# 
+# # Working directory [RStudio] -------------------------------------------------------
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
+# setwd('..') # Move one up
+# stub0 <- paste0(getwd(), "/") # Base working directory
 # Libraries etc ----------------------------
-library(rstudioapi)
-library(conflicted)
-conflicts_prefer(dplyr::filter)
-conflicts_prefer(dplyr::select)
-library(tidyverse)
-# Source helper files and functions -----------------------------------------------
-source("URGED/support/fcts_labelers_colors.R")
-source("URGED/support/fcts_helpers_debug.R")
+# library(rstudioapi)
+
+# 
+# # Source helper files and functions -----------------------------------------------
+# source("URGED/support/fcts_labelers_colors.R")
+# source("URGED/support/fcts_helpers_debug.R")
 # Directories and settings ----------------------------
 ## Input
 # path_data_citymean <- "results/scenarios/dfscenarios.rds" # These are the scenarios generated in 
-path_ghsnames <- "results/ghs_subregion_Cls.rds" # Needed for merging with path_data_citymean
-path_results <- "ugs/"
-path_highestobs <- "ugs/dfhighestobs.rds"
+path_ghsnames <- "../results/ghs_subregion_Cls.rds" # Needed for merging with path_data_citymean
+path_results <- "../ugs/"
+path_highestobs <- "../ugs/dfhighestobs.rds"
 
 # Load data
 # df0 <- read_rds(path_data_citymean)
@@ -49,11 +47,13 @@ ggplot(data = dfplot,
   theme(axis.text.x = element_text(angle = 0, hjust = 1),
         axis.title.x = element_blank(), axis.title.y = element_blank(),
         plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom") +
+        legend.position = "bottom",
+        legend.title = element_text(size = 7, color = "grey30"),
+        legend.text = element_text(size = 7, color = "grey30")) +
   labs(x = "KGC Climate Zone",
        y = "LCZ",
        fill = "GVI\n90% perc.")
-outname <- "results/scenarios/bestcities_byLCZ_KGC_90percentile.png"
+outname <- "../results/scenarios/bestcities_byLCZ_KGC_90percentile.png"
 ggsave(outname, width = 8, height = 7, units = "cm", bg = "white", dpi = 300)
 
 # Plot for lowest values
@@ -67,14 +67,16 @@ ggplot(data = dfplot,
   theme(axis.text.x = element_text(angle = 0, hjust = 1),
         axis.title.x = element_blank(), axis.title.y = element_blank(),
         plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom") +
+        legend.position = "bottom",
+        legend.title = element_text(size = 7, color = "grey30"),
+        legend.text = element_text(size = 7, color = "grey30")) +
   labs(x = "KGC Climate Zone",
        y = "LCZ",
        fill = "GVI\n10% perc.")
-outname <- "results/scenarios/bestcities_byLCZ_KGC_10percentile.png"
+outname <- "../results/scenarios/bestcities_byLCZ_KGC_10percentile.png"
 ggsave(outname, width = 8, height = 7, units = "cm", bg = "white", dpi = 300)
 
-# May 2025: From here, the code now breaks. It is operating using df0, which is an old data.frame (dfscenarios.rds). Needs to be redone to redo these figures.
+ # May 2025: From here, the code now breaks. It is operating using df0, which is an old data.frame (dfscenarios.rds). Needs to be redone to redo these figures.
 # Plot the names of frontrunners by KGC.
 df_topcls <- merge(df0, ghsnames,
                    by.x = c("city", "country"),
