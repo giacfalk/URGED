@@ -43,6 +43,8 @@ source("support/fct_scenarios.R") # Here the "filtering" function can be found
 #################
 
 source("0_build_cities_database.R") # write a database of city boundaries with climate zone information
+setwd(paste0(stub, "/URGED"))
+
 source("0_build_ugspoints_citynames.R") # parse city name to ugs points dataframe and write it to "after_points_100425_citynames.rds" file
 source("0_build_ugspoints_database.R") # write a database of within-city units of analysis with climate/local climate zone information
 source("0_citynames_harmonization.R") # write a database of city boundaries with climate zone information
