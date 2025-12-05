@@ -1,21 +1,6 @@
 # Develop scenarios for urban green and associated heat mitigation potential.
 # Here, use the point estimates produced and cluster them by city, country, lcz, kgz.
-# rm(list=ls(all=TRUE)) # Removes all previously created variables 
-# # Working directory [RStudio] -------------------------------------------------------
-# library(rstudioapi)
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-# setwd('..') # Move one up
-# stub0 <- paste0(getwd(), "/") # Base working directory
-# # Libraries etc ----------------------------
-# library(conflicted)
-# conflicts_prefer(dplyr::filter) # Use the filter command from dplyr, even if stats is loaded
-# library(tidyverse)
-
-# 
-# # Source helper files and functions ---------------------------------------
-# source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
-# source("URGED/support/fcts_helpers_debug.R")
-# source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
+# For required packages and scripts see 00_sourcer.R
 # # Directories and settings ----------------------------
 ## Input
 path_ugs_complete <- "../ugs/after_points_100425_completedatabase.rds" # Citynames added in 1b_..
@@ -31,7 +16,8 @@ ugs <- ugs %>%
   filter(lcz_filter_v3 <= 10) %>% # Only keep urban form classes that are urban
   select(-id) %>% # Delete the `id` column that wasn't present in the 030624 dataset.
   dplyr::filter(lcz_filter_v3 <= 10) %>%   # Filter the land cover classes that are not urban (i.e. lcz_filter_v3 <= 10)
-  dplyr::filter(lcz_filter_v3 != 7) # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
+  dplyr::filter(lcz_filter_v3 != 7) %>% # Remove the lightweight low-rise class, which is an outlier (only a few informal settlement data points in Lagos)
+  dplyr::filter(lcz_filter_v3 != 10) # Remove the heavy industry class
 
 # Remove points that are in adjacent countries
 ugs <- ugs %>%
@@ -207,5 +193,3 @@ write_rds(dfspat, "../results/scenarios/dfspat.rds")
 write_rds(dfspattemp, "../results/scenarios/dfspattemp.rds")
 write_rds(dfscen, "../results/scenarios/dfscen.rds")
 write_rds(dfscen_pointlevel, "../results/scenarios/dfscen_pointlevel.rds")
-
-# setwd(paste0(stub0, "/URGED"))

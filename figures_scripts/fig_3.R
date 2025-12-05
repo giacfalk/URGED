@@ -50,7 +50,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * T[a[max]], partialdiff * GVI)))+
   xlab("Month")+
@@ -111,7 +111,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * WBGT[max], partialdiff * GVI)))+
   xlab("Month")+
@@ -178,7 +178,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * T[a[min]], partialdiff * GVI)))+
   xlab("Month")+
@@ -238,7 +238,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * WBGT[min], partialdiff * GVI)))+
   xlab("Month")+
@@ -293,7 +293,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * T[a[mean]], partialdiff * GVI)))+
   xlab("Month")+
@@ -353,7 +353,7 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(month), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
-  scale_fill_manual(name="LCZ", values = colors_lcz[-7])+
+  scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
   scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * WBGT[mean], partialdiff * GVI)))+
   xlab("Month")+

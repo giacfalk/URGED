@@ -48,14 +48,13 @@ ugsplot <- ugs %>%
   filter(city == samplecity) %>%
   filter(lcz_filter_v3 %in% samplelczs)
   
-colors_lcz_vienna <- c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#cab2d6", "#6a3d9a")
-colors_lcz_vienna_LCZ3 <- c("#1f78b4", "#e31a1c", "#ff7f00")
+colors_lcz_vienna <- c("#d10000", "#ff9955", "#bcbcbc")
 
 
 ggplot(data = ugsplot, aes(y = out_b, color = lcz_filter_v3,
                            fill = lcz_filter_v3)) +
   theme_minimal(base_size = 9) +
-  geom_violin(aes(x = lcz_filter_v3), quantile.color = "gray30", quantile.linetype = 1) +
+  geom_violin(aes(x = lcz_filter), quantile.color = "gray30", quantile.linetype = 1) +
   ylab("Street Green Space (GVI)") +
   # Limit y axis between 0 and 50
   ylim(0,45) +
@@ -166,7 +165,7 @@ ggplot(data = dfplot2, aes(x = scen, y = GVI, color = lcz_filter_v3)) +
   geom_boxplot() +
   facet_grid(lcz_filter_v3~Cls_short) +
   # scale_fill_manual(values = colors_lcz) +
-  scale_color_manual(values = colors_lcz) +
+  scale_color_manual(values = colors_lcz_no7no10) +
   theme(legend.position = "none",
         legend.title = element_blank(),
         axis.title.x = element_blank(),

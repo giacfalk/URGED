@@ -2,18 +2,61 @@ list_samplecities <- c("Abidjan", "Berlin", "Miami", "Singapore")
 
 overleafwidth <- 14.58792 # Textwidth in Overleaf in cm
 
-# Some functions to provide labels and color schemes
-colors_lcz <- c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a")
+#########################
+# LCZ color classes
+# Official LCZ Color Scheme (Stewart & Oke 2012 / WUDAPT standard)
+colors_lcz_complete <- c(
+  "#8c0000",  # LCZ 1  - Compact high-rise (dark red)
+  "#d10000",  # LCZ 2  - Compact midrise (red)
+  "#ff0000",  # LCZ 3  - Compact lowrise (bright red)
+  "#bf4d00",  # LCZ 4  - Open high-rise (dark orange)
+  "#ff6600",  # LCZ 5  - Open midrise (orange)
+  "#ff9955",  # LCZ 6  - Open lowrise (light orange)
+  "#faee05",  # LCZ 7  - Lightweight lowrise (yellow)
+  "#bcbcbc",  # LCZ 8  - Large lowrise (light gray)
+  "#ffccaa",  # LCZ 9  - Sparsely built (peach)
+  "#555555",  # LCZ 10 - Heavy industry (dark gray)
+  "#006a00",  # LCZ A  - Dense trees (dark green)
+  "#00aa00",  # LCZ B  - Scattered trees (green)
+  "#648525",  # LCZ C  - Bush, scrub (olive green)
+  "#b9db79",  # LCZ D  - Low plants (light green)
+  "#000000",  # LCZ E  - Bare rock or paved (black)
+  "#fbf7ae",  # LCZ F  - Bare soil or sand (beige)
+  "#6a6aff"   # LCZ G  - Water (blue)
+)
 
-colors_Clsmain <- c("#33a02c", "#ff7f00", "#b2df8a", "#fb9a99", "#a6cee3")
+# For the built types (LCZ 1-10):
+colors_lcz_built <- c(
+  "#8c0000",  # LCZ 1
+  "#d10000",  # LCZ 2
+  "#ff0000",  # LCZ 3
+  "#bf4d00",  # LCZ 4
+  "#ff6600",  # LCZ 5
+  "#ff9955",  # LCZ 6
+  "#faee05",  # LCZ 7
+  "#bcbcbc",  # LCZ 8
+  "#ffccaa",  # LCZ 9
+  "#555555"   # LCZ 10
+)
 
-fct_factorlabels <- function(df) {
-  df <- fct_labeler_lcz(df)
-  df <- fct_labeler_Clsmain(df)
-  df <- fct_labeler_subregions(df)
-}
+# Without LCZ 7 and 10:
+colors_lcz_no7no10 <- c(
+  "#8c0000",  # LCZ 1
+  "#d10000",  # LCZ 2
+  "#ff0000",  # LCZ 3
+  "#bf4d00",  # LCZ 4
+  "#ff6600",  # LCZ 5
+  "#ff9955",  # LCZ 6
+  "#bcbcbc",  # LCZ 8
+  "#ffccaa"   # LCZ 9
+)
 
-fct_labeler_lcz <- function(df) {
+
+# # Some functions to provide labels and color schemes
+# Names for LCZ to be used in the paper
+names_lcz <- c("Compact high-rise", "Compact midrise", "Compact lowrise", "Open high-rise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built", "Heavy industry")
+
+fct_labeler_lcz_built_no7no10 <- function(df) {
   # Set factor levels and labels for local climate zones (urban form)
   df <- df %>%
     #sf::st_drop_geometry(df) %>%
@@ -28,15 +71,28 @@ fct_labeler_lcz <- function(df) {
 }
 
 fct_labeler_lcz2 <- function(lcz) {
-    factor(lcz, levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, NA),
-                        labels = c("Compact high-rise", "Compact midrise", "Compact lowrise",
-                                   "Open high-rise", "Open midrise", "Open lowrise",
-                                   "Lightweight lowrise", "Large lowrise", "Sparsely built",
-                                   "Heavy industry", "Dense trees", "Scattered trees",
-                                   "Bush, scrub", "Low plants", "Bare rock", "Bare soil",
-                                   "Water"),
-                        ordered = T)
+  factor(lcz, levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, NA),
+         labels = c("Compact high-rise", "Compact midrise", "Compact lowrise",
+                    "Open high-rise", "Open midrise", "Open lowrise",
+                    "Lightweight lowrise", "Large lowrise", "Sparsely built",
+                    "Heavy industry", "Dense trees", "Scattered trees",
+                    "Bush, scrub", "Low plants", "Bare rock", "Bare soil",
+                    "Water"),
+         ordered = T)
 }
+
+
+##########################
+# Colors climate zones (KGC)
+
+colors_Clsmain <- c("#33a02c", "#ff7f00", "#b2df8a", "#fb9a99", "#a6cee3")
+
+fct_factorlabels <- function(df) {
+  df <- fct_labeler_lcz(df)
+  df <- fct_labeler_Clsmain(df)
+  df <- fct_labeler_subregions(df)
+}
+
 
 fct_labeler_Clsmain2 <- function(Clsmain) {
   factor(Clsmain, levels = c("A", "B", "C", "D"),
