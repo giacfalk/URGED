@@ -1,3 +1,6 @@
+# In case you need to install gg.layers:
+# install.packages("remotes")
+# remotes::install_github("rpkgs/gg.layers")
 
 setwd(stub)
 
@@ -14,6 +17,9 @@ lcz_shares <- reshape2::melt(lcz_shares, 1)
 lcz_shares$variable <- gsub("lcz_frac_", "", lcz_shares$variable)
 
 lcz_shares$variable <- factor(lcz_shares$variable, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
+# Use the labeling function
+# lcz_shares <- lcz_shares %>%
+#   mutate(variable = fct_labeler_lcz2(variable))
 
 coefs$X <- NULL
 scens$X <- NULL
@@ -21,6 +27,8 @@ scens$X <- NULL
 ###
 
 scens$lcz <- factor(scens$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
+# scens <- scens %>%
+  # mutate(lcz = fct_labeler_lcz2(lcz))
 
 merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
@@ -29,10 +37,14 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                ordered = T))
 
 ###
-
-source("URGED/support/fcts_labelers_colors.R")
+# 
+# source("URGED/support/fcts_labelers_colors.R") # Loaded in 00_sourcer.R
 
 ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme_classic()+
@@ -87,6 +99,11 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                         labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                         ordered = T))
+
 
 ###
 
@@ -148,6 +165,10 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                         labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                         ordered = T))
 
 ###
 
@@ -206,6 +227,10 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                         labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                         ordered = T))
 
 ###
 
@@ -257,6 +282,10 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                         labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                         ordered = T))
 
 ###
 
@@ -313,6 +342,10 @@ kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
+merger <- merger %>%
+  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+                         labels = c("Tropical", "Dry", "Temperate", "Continental"),
+                         ordered = T))
 
 ###
 
