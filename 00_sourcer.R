@@ -83,13 +83,13 @@ source("4_policy_simulation_climate_change_ugs_heat_metrics.r") # perform policy
 
 ########
 # Paper scripts
-setwd("..")
-source("paper/figures_scripts/fig_1.R")
-source("paper/figures_scripts/regression_boxplots.R")
-source("paper/figures_scripts/table_scenarios.R")
-source("paper/figures_scripts/21_project_future_ugs_pointwise_plotting.R")
-source("paper/figures_scripts/plot_scenarios.R")
-source("paper/figures_scripts/fig_4_new.r")
-source("paper/figures_scripts/map_counterbalancing_wbgt_mean.R")
-source("paper/figures_scripts/map_counterbalancing_tas_min.R")
-source("paper/figures_scripts/map_counterbalancing_wbgt_max.R")
+
+source("figures_scripts/fig_1.R")
+source("figures_scripts/regression_boxplots.R")
+source("figures_scripts/table_scenarios.R")
+source("figures_scripts/21_project_future_ugs_pointwise_plotting.R")
+source("figures_scripts/plot_scenarios.R")
+source("figures_scripts/fig_4_new.r")
+source("figures_scripts/map_counterbalancing_wbgt_mean.R")
+source("figures_scripts/map_counterbalancing_tas_min.R")
+source("figures_scripts/map_counterbalancing_wbgt_max.R")
