@@ -170,8 +170,14 @@ ggplot(data = dfplot2, aes(x = scen, y = GVI, color = lcz_filter_v3)) +
   theme(legend.position = "none",
         legend.title = element_blank(),
         axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
+        axis.text.x = element_text(size = 7, angle = 45, hjust = 1),
+        # axis.text.y = element_text(size = 7),
+        strip.text.y = element_text(size = 6.5),
+        panel.spacing = unit(0, "lines"),  # Remove spacing between panels
+        panel.border = element_rect(color = "gray80", fill = NA, linewidth = 0.5))
   
 
-ggsave(filename = paste0(path_results, "bylcz_simplenevelope-boxplots_allcities_alllcz_allkgc.png"),
+ggsave(filename = paste0("../results/scenarios/bylcz_simplenevelope-boxplots_allcities_alllcz_allkgc.png"),
        width = overleafwidth, height = 20, units = "cm", bg = "white", dpi = 300, limitsize = FALSE)
+
+# Now do the same for the "pointwise" projection
