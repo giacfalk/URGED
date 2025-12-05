@@ -188,14 +188,15 @@ dffuture <- dffuture %>%
            ifelse(hitboundsb == "Yes", boundupr, ugs_scen_hgh),
          )
 dfscen <- dffuture
+
 testdffuture <- dffuture %>%
   filter(city == "Singapore")
 
-# # Merge the future data with the historic data in df
-# dfscen <- merge(dffuture, df %>% dplyr::select(-base::intersect(colnames(df), colnames(dffuture))[-c(3:4)]), by=c("city", "country"))
-# dfscen <- na.omit(dfscen)
+# Merge the future data with the historic data in df
+dfscen_pointlevel <- merge(dfscen, dfugshist %>% dplyr::select(-base::intersect(colnames(df), colnames(dffuture))[-c(3:4)]), by=c("city", "country"))
+dfscen_pointlevel <- na.omit(dfscen_pointlevel)
 
-testdfscen <- dfscen %>%
+testdfscen_pointlevel <- dfscen_pointlevel %>%
   filter(city == "Singapore")
 
 #####
@@ -205,6 +206,6 @@ write_rds(dfhighestobs, file = paste0("../ugs/dfhighestobs.rds"))
 write_rds(dfspat, "../results/scenarios/dfspat.rds")
 write_rds(dfspattemp, "../results/scenarios/dfspattemp.rds")
 write_rds(dfscen, "../results/scenarios/dfscen.rds")
-write_rds(dfscen, "../results/scenarios/dfscen_pointlevel.rds")
+write_rds(dfscen_pointlevel, "../results/scenarios/dfscen_pointlevel.rds")
 
 # setwd(paste0(stub0, "/URGED"))
