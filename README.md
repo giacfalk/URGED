@@ -2,11 +2,6 @@
 
 This repository contains the code relevant for the URGED project. Data and outputs are written to folders that are not part of this repository.
 
-## Technical Notes
-### Land Cover Classes
-We omit the land cover class "lightweight low-rise" class (LCZ == 7) from some analyses, as it contains only a few informal settlement data points in Lagos.
-## Köppen-Geiger Climate Zones
-We have cities in the Tropical, Dry, Temperate, Continental climate zones. None in the Polar KGC.
 ## Folder structure
 
 The main code is contained in the `URGED/` folder.
@@ -18,7 +13,10 @@ Regression tables in `results/regtab/`
 Helper functions in `URGED/support`
 
 # Data sets
-The following files are saved as intermediate or output files. Usually either in .rds or .RData.
+The following Zenodo repository contains all the input data files required to replicate the workflow of the analysis: https://doi.org/10.5281/zenodo.17803495
+
+The following files are saved as intermediate or output files. Usually either in .rds or .RData:
+
 
 ## UGS data
 This dataset contains all points for all 180 cities with ugs AND also KGC, LCZ, GHS-associated variables (subregion etc.). For various process reasons, this is produced in `0_build_ugspoints_database.R`:
@@ -68,4 +66,11 @@ Attn! Here, we have variables id and ID which may break some grouping routines!
 `Cls_short`: Main (first letter) of Köppen Geiger climate zone. In some parts also calles `Cls_main`
 
 `lcz_filter_v3`: Local climate zone (urban form)
+
+## Technical Notes
+
+### Land Cover Classes
+We omit the land cover class "lightweight low-rise" class (LCZ == 7) from some analyses, as it contains only a few informal settlement data points in Lagos.
+## Köppen-Geiger Climate Zones
+We have cities in the Tropical, Dry, Temperate, Continental climate zones. None in the Polar KGC.
  
