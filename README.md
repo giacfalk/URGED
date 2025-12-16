@@ -5,6 +5,9 @@ This repository contains the code relevant for the URGED project. Data and outpu
 ## Technical Notes
 ### Land Cover Classes
 We omit the land cover class "lightweight low-rise" class (LCZ == 7) from some analyses, as it contains only a few informal settlement data points in Lagos.
+
+The same applies to the Heavy Industry (LCZ == 10) class.
+
 ## Köppen-Geiger Climate Zones
 We have cities in the Tropical, Dry, Temperate, Continental climate zones. None in the Polar KGC.
 ## Folder structure

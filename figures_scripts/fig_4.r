@@ -4,11 +4,10 @@ library(modelsummary)
 library(data.table)
 
 setwd(stub)
-setwd("..")
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -88,7 +87,7 @@ View(r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),])
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -165,7 +164,7 @@ ggsave("paper/scen_result_wbgt_mean_boxplot.png", height = 6, width = 6, scale=1
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_min.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -241,7 +240,7 @@ ggsave("paper/scen_result_wbgt_min_boxplot.png", height = 6, width = 6, scale=1.
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_max.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -315,7 +314,7 @@ ggsave("paper/scen_result_tas_max_boxplot.png", height = 6, width = 6, scale=1.4
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_mean.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -389,7 +388,7 @@ ggsave("paper/scen_result_tas_mean_boxplot.png", height = 6, width = 6, scale=1.
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_min.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -464,7 +463,7 @@ ggsave("paper/scen_result_tas_min_boxplot.png", height = 6, width = 6, scale=1.4
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -539,7 +538,7 @@ r_s_pot_part_1 <- r_s_pot
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -615,7 +614,7 @@ r_s_pot_part_2 <- r_s_pot
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 

@@ -1,18 +1,5 @@
 # # Plot the "frontrunners" or "best cities" for urban green space by climate zone and subregion 
-# rm(list=ls(all=TRUE)) # Removes all previously created variables
-# 
-# # Working directory [RStudio] -------------------------------------------------------
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory to current file location
-# setwd('..') # Move one up
-# stub0 <- paste0(getwd(), "/") # Base working directory
-# Libraries etc ----------------------------
-# library(rstudioapi)
 
-# 
-# # Source helper files and functions -----------------------------------------------
-# source("URGED/support/fcts_labelers_colors.R")
-# source("URGED/support/fcts_helpers_debug.R")
-# Directories and settings ----------------------------
 ## Input
 # path_data_citymean <- "results/scenarios/dfscenarios.rds" # These are the scenarios generated in 
 path_ghsnames <- "../results/ghs_subregion_Cls.rds" # Needed for merging with path_data_citymean

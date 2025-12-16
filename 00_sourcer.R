@@ -69,8 +69,7 @@ source("0_wbt_wbgt.R") # This script computes an estimation of future wet bulb g
 
 ########
 ########
-source("2_ugs_frontrunner_cities.R")  # determine lower and upper bounds of SGS by main KGC as well as LCZ
-source("2_project_future_ugs_pointwise.R") # Project GVI
+source("2_project_future_ugs_pointwise.R") # determine lower and upper bounds of SGS by main KGC as well as LCZ, project future GVI
 # source("2ALPS_project_future_ugs_pointwise.R") # attempt to project GVI at the city level (ALPS project variant)
 ########
 ########
