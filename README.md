@@ -137,7 +137,6 @@ ugs/after_points_100425_completedatabase.rds
 - `lcz_filter_v3` - Local climate zone (urban form)
 
 ## Technical Notes
-<<<<<<< HEAD
 ### Land Cover Classes
 We omit the land cover class "lightweight low-rise" class (LCZ == 7) from some analyses, as it contains only a few informal settlement data points in Lagos.
 
@@ -146,9 +145,6 @@ The same applies to the Heavy Industry (LCZ == 10) class.
 ## Köppen-Geiger Climate Zones
 We have cities in the Tropical, Dry, Temperate, Continental climate zones. None in the Polar KGC.
 ## Folder structure
-=======
->>>>>>> refs/remotes/origin/main
-
 ### Climate Classifications
 
 **Köppen-Geiger Zones:**
@@ -233,7 +229,5 @@ If you use this code or data in your research, please cite:
 Giacomo Falcetta: falchetta@iiasa.ac.at
 Steffen Lohrey: lohrey@iiasa.ac.at
 
-
----
 
 **Note:** This is an active research project. Code and documentation are continuously updated.
