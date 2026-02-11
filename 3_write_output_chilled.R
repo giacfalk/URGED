@@ -26,7 +26,7 @@ cities <- dplyr::group_by(cities, UC_NM_MN) %>% slice_max((P15))
 cities <- dplyr::select(cities, UC_NM_MN, CTR_MN_ISO, GRGN_L2)
 cities$geom <- NULL
 
-#########
+######### 
 
 # share of LCZs by city
 

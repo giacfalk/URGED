@@ -13,7 +13,7 @@ library(exactextractr)
 library(sf)
 library(terra)
 
-stub <- 'C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/'
+stub <- 'Z:/Users/Utente/OneDrive - IIASA/IBGF_2024/implementation/'
 res_dir <- paste0(stub, '/results/', sep ='')
 
 ###
@@ -37,7 +37,7 @@ cdh <- dplyr::group_by(cdh, comune, year) %>% dplyr::summarise(cdh=sum(cdh, na.r
 
 ####
 
-stub2 <- "C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/climate/provide_urban_climate_data/"
+stub2 <- "Z:/Users/Utente/OneDrive - IIASA/IBGF_2024/implementation/climate/provide_urban_climate_data/"
 setwd(stub2)
 
 out_ndvi_m <- read_rds("data_provide_cdh_gvi_ITA_cities.rds")

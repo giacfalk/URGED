@@ -3,7 +3,7 @@
 # This Rscript: 
 
 #   1) invoke the different scripts to run the different parts of the analysis
-# Also chech the information contained in README.md
+# Also check the information contained in README.md
 ##############################################################################
 
 rm(list=ls(all=TRUE)) # Removes all previously created variables
@@ -34,6 +34,7 @@ hbs_dir <- paste0(stub, 'hbs_data/', sep ='')
 
 setwd(paste0(stub, "/URGED"))
 
+
 # Get helper files
 source("support/fcts_labelers_colors.R") # Here also the samplecities are defined
 source("support/fcts_helpers_debug.R")
@@ -57,7 +58,7 @@ source("0_show_ugs_policy_meaning.R") # useful for understanding what a given GV
 ########
 ########
 
-source("1_monthly_ugs_elasticities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum air temperature in each city
+source("1_monthly_ugs_elasticities_r1.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum air temperature in each city
 source("1_monthly_ugs_elasticities_WBGT.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT in each city
 source("1_summary_table_compare_across_metrics.R") # produce a table comparing the estimated impact of GVI across the climate metrics considered
 
@@ -94,3 +95,8 @@ source("figures_scripts/fig_4_new.r")
 source("figures_scripts/map_counterbalancing_wbgt_mean.R")
 source("figures_scripts/map_counterbalancing_tas_min.R")
 source("figures_scripts/map_counterbalancing_wbgt_max.R")
+
+# Scripts for paper #2
+source("paper2/paper2_makeplots.R")
+
+test

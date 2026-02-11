@@ -2,12 +2,12 @@
 # install.packages("remotes")
 # remotes::install_github("rpkgs/gg.layers")
 
-setwd(stub)
+setwd('..')
 
 library(sf)
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_max.csv")   %>% mutate(UC_NM_MN = gsub("_max", "", UC_NM_MN))
+coefs <- read.csv("output_data/outer_2_max.csv")   %>% dplyr::mutate(UC_NM_MN = gsub("_max", "", UC_NM_MN))
 scens <- read.csv("output_data/outer_3.csv")
 
 ###
@@ -19,7 +19,7 @@ lcz_shares$variable <- gsub("lcz_frac_", "", lcz_shares$variable)
 lcz_shares$variable <- factor(lcz_shares$variable, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 # Use the labeling function
 # lcz_shares <- lcz_shares %>%
-#   mutate(variable = fct_labeler_lcz2(variable))
+#   dplyr::mutate(variable = fct_labeler_lcz2(variable))
 
 coefs$X <- NULL
 scens$X <- NULL
@@ -28,7 +28,7 @@ scens$X <- NULL
 
 scens$lcz <- factor(scens$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 # scens <- scens %>%
-  # mutate(lcz = fct_labeler_lcz2(lcz))
+  # dplyr::mutate(lcz = fct_labeler_lcz2(lcz))
 
 merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
@@ -38,7 +38,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                 labels = c("Tropical", "Dry", "Temperate", "Continental"),
                 ordered = T))
 
@@ -63,6 +63,7 @@ ggsave("paper/fig1_max.pdf", height=12, width=10, scale=0.85)
 ###
 
 summary(merger %>% filter(year==2025) %>% pull(coef)) 
+summary(merger %>% filter(year==2025) %>% pull(coef_abs)) 
 
 t.test(merger %>% filter(year==2025) %>% pull(coef))
 
@@ -71,10 +72,10 @@ t.test(merger %>% filter(year==2025) %>% pull(coef))
 ###################
 ###################
 
-# same but with mean WBGT
+# same but with max WBGT
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_wbgt_max.csv")  %>% mutate(UC_NM_MN = gsub("_max_wbgt", "", UC_NM_MN))
+coefs <- read.csv("output_data/outer_2_wbgt_max.csv")  %>% dplyr::mutate(UC_NM_MN = gsub("_max_wbgt", "", UC_NM_MN))
 scens <- read.csv("output_data/outer_3.csv")
 
 ###
@@ -100,7 +101,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                          labels = c("Tropical", "Dry", "Temperate", "Continental"),
                          ordered = T))
 
@@ -119,11 +120,25 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   theme(strip.text.x = element_text(size = 10),
         strip.text.y = element_text(size = 8))
 
+# ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
+#   theme_classic()+
+#   geom_hline(yintercept = 0)+
+#   gg.layers::geom_boxplot2(aes(y=coef_abs, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
+#   scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
+#   # scale_y_continuous(limits=c(-1, 0.25), breaks = seq(-1, 0.25, 0.25))+
+#   ylab(expression(frac(partialdiff * WBGT[max], partialdiff * GVI)))+
+#   facet_grid(variable ~ kg_cl_1)+
+#   theme(strip.text.x = element_text(size = 8),
+#         strip.text.y = element_text(size = 8), axis.text.x = element_text(size=0))
+
 ggsave("paper/fig1_wbgt_max.pdf", height=12, width=10, scale=0.85)
 
 ###
 
 # summary stats for paper
+
+summary(merger %>% filter(year==2025) %>% pull(coef_abs)) 
+
 
 summary( merger %>% filter(year==2025 & variable!="Lightweight lowrise") %>% pull(coef))
 
@@ -140,7 +155,7 @@ t.test(merger %>% filter(year==2025) %>% pull(coef))
 ###################
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_min.csv")   %>% mutate(UC_NM_MN = gsub("_min", "", UC_NM_MN))
+coefs <- read.csv("output_data/outer_2_min.csv")   %>% dplyr::mutate(UC_NM_MN = gsub("_min", "", UC_NM_MN))
 scens <- read.csv("output_data/outer_3.csv")
 
 ###
@@ -166,7 +181,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                          labels = c("Tropical", "Dry", "Temperate", "Continental"),
                          ordered = T))
 
@@ -202,7 +217,7 @@ t.test(merger %>% filter(year==2025) %>% pull(coef))
 # same but with mean WBGT
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_wbgt_min.csv")  %>% mutate(UC_NM_MN = gsub("_min_wbgt", "", UC_NM_MN))
+coefs <- read.csv("output_data/outer_2_wbgt_min.csv")  %>% dplyr::mutate(UC_NM_MN = gsub("_min_wbgt", "", UC_NM_MN))
 scens <- read.csv("output_data/outer_3.csv")
 
 ###
@@ -228,7 +243,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                          labels = c("Tropical", "Dry", "Temperate", "Continental"),
                          ordered = T))
 
@@ -283,7 +298,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                          labels = c("Tropical", "Dry", "Temperate", "Continental"),
                          ordered = T))
 
@@ -317,7 +332,7 @@ t.test(merger %>% filter(year==2025) %>% pull(coef))
 # same but with mean WBGT
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_wbgt_mean.csv")  %>% mutate(UC_NM_MN = gsub("_wbgt", "", UC_NM_MN))
+coefs <- read.csv("output_data/outer_2_wbgt_mean.csv")  %>% dplyr::mutate(UC_NM_MN = gsub("_wbgt", "", UC_NM_MN))
 scens <- read.csv("output_data/outer_3.csv")
 
 ###
@@ -343,7 +358,7 @@ kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
 merger <- merge(merger, kg, "UC_NM_MN")
 merger <- merger %>%
-  mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
+  dplyr::mutate(kg_cl_1 = factor(kg_cl_1, levels = c("A", "B", "C", "D"),
                          labels = c("Tropical", "Dry", "Temperate", "Continental"),
                          ordered = T))
 
