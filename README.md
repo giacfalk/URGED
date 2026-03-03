@@ -1,6 +1,6 @@
 # URGED: URban mitigation and adaptation strategies Gauging through Empirical functions and Data products
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17803495.svg)](https://doi.org/10.5281/zenodo.17803495)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18848130.svg)](https://doi.org/10.5281/zenodo.18848130)
 
 ## Overview
 
@@ -15,26 +15,93 @@ URGED is an analytical framework for assessing the impact of urban green spaces 
 - **Population exposure**: Heat exposure analysis by city and urban form
 
 ## Repository Structure
+### Entry point
+- **`00_sourcer.R`**  
+  Main orchestrator: sets working directories, loads packages, sources helper functions, then runs the pipeline (database build → regressions → projections → outputs → policy simulation → paper figures).
+  
+### Helper functions
+Located in `support/` and sourced explicitly:
+- `support/fcts_labelers_colors.R` (labels, LCZ/Köppen color schemes, dictionaries, sample cities) 
+- `support/fcts_helpers_debug.R` (debug helpers / quick counts & plots) 
+- `support/fct_scenarios.R` (scenario helper functions)
 
-```
+### Pipeline scripts
+**0) Build / harmonize core databases**
+- `0_build_cities_database.R`
+- `0_build_ugspoints_citynames.R`
+- `0_build_ugspoints_database.R`
+- `0_citynames_harmonization.R`
+- (optional / currently commented in `00_sourcer.R`) `0_output_template.R`
+- `0_show_ugs_policy_meaning.R` (visual interpretation of GVI values)
+
+**1) City-level regressions for heat metrics (WBGT and T2M)**
+These “run_*” scripts are sourced directly by `00_sourcer.R` and typically call the underlying estimation scripts:
+- `run_WBGT_max_all_cities.R`
+- `run_WBGT_mean_all_cities.R`
+- `run_WBGT_min_all_cities.R`
+- `run_T2M_max_all_cities.R`
+- `run_T2M_mean_all_cities.R`
+- `run_T2M_min_all_cities.R`
+
+Underlying estimation scripts present in the repo (useful if you want to run/inspect one model family directly):
+- `estimate_gvi_coefs_WBGT_{max,mean,min}_panel_multicities.R`
+- `estimate_gvi_coefs_T2M_{max,mean,min}_panel_multicities.R`
+
+**2) Robustness + cross-metric summary**
+- `1_daily_ugs_elasticities_r1_robustness.R` (robustness: pooled specs, clustering/SE variants, etc.)
+- `1_summary_table_compare_across_metrics.R`
+
+**3) Climate change deltas and processing of supporting climate inputs**
+- `0_calculate_climate_change_markups.R` (future deltas from CMIP6-style inputs)
+- `4_process_humidity_data.R` 
+- `4_process_lst_data.R`
+- `0_wbt_wbgt.R` (WBGT derivation / future WBGT estimation utilities)
+
+**4) Projections of future GVI**
+- `2_project_future_ugs_pointwise.R`
+
+**5) Write outputs for downstream policy simulations and analysis**
+- `3_write_output_chilled.R`
+
+**6) Policy simulation**
+- `4_policy_simulation_climate_change_ugs_heat_metrics.r`
+
+**7) Paper figure scripts**
+These are sourced at the bottom of `00_sourcer.R` (edit/comment depending on what you want to reproduce):
+- `figures_scripts/fig_3.R`
+- `figures_scripts/table_scenarios.R`
+- `figures_scripts/21_project_future_ugs_pointwise_plotting.R`
+- `figures_scripts/plot_scenarios.R`
+- `figures_scripts/fig_4_new.r`
+- `figures_scripts/map_counterbalancing_wbgt_mean.R`
+- `figures_scripts/map_counterbalancing_tas_min.R`
+- `figures_scripts/map_counterbalancing_wbgt_max.R`
+
+---
+
+## Repository tree (high level)
+```text
 URGED/
-├── 00_sourcer.R                    # Main initialization and helper functions loader
-├── 0_*.R                           # Data preparation and database building scripts
-├── 1_*.R                           # Analysis scripts (elasticities, summaries)
-├── 2_*.R                           # Future projections and visualizations
-├── 3_*.R                           # Output generation scripts
-├── 4_*.R                           # Policy simulations and data processing
-├── 5_*.R                           # Population and heat exposure analysis
-├── support/                        # Helper functions and utilities
-├── figures_scripts/                # Scripts for generating publication figures
-└── old/                            # Legacy code (archived)
+├─ 00_sourcer.R
+├─ support/                  # helper functions sourced by 00_sourcer.R
+├─ figures_scripts/          # paper figure reproduction scripts
+├─ old/                      # legacy code
+├─ other/                    # misc / auxiliary content
+├─ 0_*.R                     # database builds & harmonization
+├─ run_*.R                   # city-by-city runs for WBGT and T2M families
+├─ estimate_gvi_coefs_*.R    # estimation backends for WBGT/T2M
+├─ 1_*.R                     # robustness & summary tables (and additional analyses)
+├─ 2_*.R                     # projections
+├─ 3_*.R                     # output writers
+├─ 4_*.R                     # policy sim + climate input processing
+└─ 5_*.R                     # population/exposure analysis (not sourced by default)                          # Legacy code (archived)
 ```
 
 ## Data Requirements
 
 ### Input Data
 
-All required input data files are available from the [Zenodo repository](https://doi.org/10.5281/zenodo.17803495).
+All required input data files are available from the [Zenodo repository](https://doi.org/10.5281/zenodo.18848130).
 
 **Key datasets:**
 - Urban Green Space (UGS) point data with Green View Index (GVI)
@@ -51,56 +118,6 @@ Results are written to folders outside this repository:
 - `results/` - Main analysis outputs
 - `results/regtab/` - Regression tables
 - Intermediate files saved as `.rds` or `.RData`
-
-## Workflow
-
-### 1. Data Preparation (Scripts 0_*)
-
-**Database Construction:**
-- `0_build_cities_database.R` - Constructs city-level database
-- `0_build_ugspoints_database.R` - Creates UGS points database with all attributes
-- `0_build_ugspoints_citynames.R` - Harmonizes city names across datasets
-- `0_citynames_harmonization.R` - Additional city name standardization
-
-**Supporting Data Processing:**
-- `0_calculate_climate_change_markups.R` - Computes future climate adjustments
-- `0_wbt_wbgt.R` - Calculates Wet Bulb Globe Temperature metrics
-- `0_tstats_city_lcz_urbclim.R` - Temperature statistics by city and LCZ
-
-**Outputs and Templates:**
-- `0_output_template.R` - Defines output structure
-- `0_show_ugs_policy_meaning.R` - UGS policy interpretation
-- `0_table_sgslevel_bylcz.R` - Summary tables by LCZ
-
-### 2. Statistical Analysis (Scripts 1_*)
-
-**Elasticity Estimation:**
-- `1_monthly_ugs_elasticities.R` - Monthly UGS-temperature relationships
-- `1_monthly_ugs_elasticities_WBGT.R` - WBGT-based elasticities
-- `1_monthly_ugs_elasticities_italy.R` - Italy-specific analysis
-- `1_summary_table_compare_across_metrics.R` - Cross-metric comparisons
-
-### 3. Future Projections (Scripts 2_*)
-
-- `2_project_future_ugs_pointwise.R` - Point-level future UGS projections
-- `2ALPS_project_future_ugs_pointwise.R` - ALPS region projections
-- `2_plot_ugs_frontrunner_cities.R` - Visualization of leading cities
-
-### 4. Policy Analysis & Data Processing (Scripts 4_*)
-
-- `4_policy_simulation_climate_change_ugs_heat_metrics.r` - Climate policy scenarios
-- `4_process_humidity_data.R` - Humidity data processing
-- `4_process_lst_data.R` - Land surface temperature processing
-
-### 5. Population & Exposure Analysis (Scripts 5_*)
-
-- `5_pop_bycity_bylcz.R` - Population distribution by city and LCZ
-- `5_pop_heat_exposure.R` - Heat exposure population assessments
-
-### 6. Output Generation (Scripts 3_*)
-
-- `3_write_output_chilled.R` - Standard output generation
-- `3_write_output_chilled_ALPS.R` - ALPS-specific outputs
 
 ## Key Data Files
 
@@ -174,7 +191,7 @@ git clone https://github.com/giacfalk/URGED.git
 cd URGED
 ```
 
-2. Download input data from [Zenodo](https://doi.org/10.5281/zenodo.17803495)
+2. Download input data from [Zenodo](https://doi.org/10.5281/zenodo.18848130)
 
 3. Set up folder structure (create `results/` directory outside repository)
 
@@ -183,44 +200,17 @@ cd URGED
 source("00_sourcer.R")
 ```
 
-### Running the Analysis
-
-Execute scripts in numerical order:
-
-```r
-# 1. Build databases
-source("0_build_cities_database.R")
-source("0_build_ugspoints_database.R")
-
-# 2. Calculate metrics
-source("0_calculate_climate_change_markups.R")
-source("0_wbt_wbgt.R")
-
-# 3. Run analyses
-source("1_monthly_ugs_elasticities.R")
-source("2_project_future_ugs_pointwise.R")
-
-# 4. Generate outputs
-source("3_write_output_chilled.R")
-```
-
-## Documentation
-
-Additional documentation files:
-- `Code_Descriptions.md` - Detailed script descriptions
-- `ColorCoding.md` - Color schemes for visualizations
-- `files_to_be_updated_new_gvi_data.txt` - Data update tracking
-
 ## Citation
 
 If you use this code or data in your research, please cite:
 
 ```bibtex
-@dataset{urged_2025,
-  author       = {[Falchetta, Giacomo and Lohrey, Steffen]},
-  title        = {Street green space is relevant but not sufficient for adapting to growing urban heat in world cities},
-  year         = {2025},
-  publisher    = {Preprint}
+@article{Falchetta2026_SGS_heat,
+  title   = {Street green space is relevant but not sufficient for adapting to growing urban heat in world cities},
+  author  = {Falchetta, Giacomo and Lohrey, Steffen and Souverijns, Niels and Lauwaet, Dirk and Schleussner, Carl-Friedrich and Niamir, Leila},
+  journal = {Environmental Research Letters},
+  year    = {2026},
+  note    = {Under review}
 }
 ```
 
@@ -228,6 +218,3 @@ If you use this code or data in your research, please cite:
 
 Giacomo Falcetta: falchetta@iiasa.ac.at
 Steffen Lohrey: lohrey@iiasa.ac.at
-
-
-**Note:** This is an active research project. Code and documentation are continuously updated.
