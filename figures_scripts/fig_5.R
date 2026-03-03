@@ -10,13 +10,11 @@ library(raster)
 library(dplyr)
 library(data.table)
 
-setwd(stub)
-setwd("..")
+sf::sf_use_s2(F)
 
+setwd("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation")
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_tas_min.csv")
-
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Sydney", "Dubai", "Lima", "Houston", "Bogota", "Nairobi", "Dhaka")
+r = read.csv("results/scenarios/absolute_heat_decrease_tas_min.csv")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -39,6 +37,14 @@ markups <- markups[, lapply(.SD, mean, na.rm = TRUE), by = .(city, year, clim_sc
 markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -79,7 +85,7 @@ r_s_pot$value <- r_s_pot$value * 100
 
 r_s_pot$value <- ifelse(r_s_pot$value < 0, 0, r_s_pot$value)
 
-r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::summarise(value = mean(value, na.rm=T))
+r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::filter(variable=="CurPol")
 
 ###
 
@@ -94,11 +100,19 @@ PROJ <- "+proj=eck4 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +n
 NE_graticules.prj <- spTransform(NE_graticules, CRSobj = PROJ)
 
 
-sf_c <- read_sf("implementation/boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
+sf_c <- read_sf("boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
 
 ##
 
+closest <- sapply(unique(r_s_pot$UC_NM_MN), function(x) {
+  unique(sf_c$UC_NM_MN)[which.min(stringdist(x, unique(sf_c$UC_NM_MN), method = "jw"))]
+})
+
+r_s_pot$UC_NM_MN <- closest[match(r_s_pot$UC_NM_MN, names(closest))]
+
 grr_m <- merge(r_s_pot, sf_c, "UC_NM_MN")
+
+grr_m <- grr_m %>% group_by(UC_NM_MN) %>% dplyr::slice_max(P15, n=1)
 
 ##
 
@@ -130,7 +144,7 @@ ggsave("paper/map_counterbalancing_tas_min.pdf", scale=2, height = 4, width = 6)
 
 ##
 
-clima <- read.csv("implementation/cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
+clima <- read.csv("cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
 
 grr_m <- merge(grr_m, clima, by.x="UC_NM_MN", by.y="city")
 
@@ -151,15 +165,13 @@ ggplot(grr_m)+
   gg.layers::geom_boxplot2(aes(x=Cls_short, y=out_b_mean), width.errorbar = .25, fill="lightgrey", lwd=0.1)+
   xlab("")+
   ylab("")+
-  scale_y_continuous(breaks=seq(0, 60, 10), limits = c(0, 60))
+  scale_y_continuous(limits=quantile(grr_m$out_b_mean, c(0.15, 0.85)))
 
 ggsave("paper/map_counterbalancing_tas_min_boxplot.pdf", scale=0.5, height = 4, width = 8)
 
 ###############
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_max.csv")
-
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Sydney", "Dubai", "Lima", "Houston", "Bogota", "Nairobi", "Dhaka")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -184,6 +196,14 @@ colnames(markups)[4] <- "variable"
 colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -230,7 +250,7 @@ tapply(r_s_pot$value, r_s_pot$variable, summary)
 
 ##
 
-r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::summarise(value = mean(value, na.rm=T))
+r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::filter(variable=="CurPol")
 
 library(rworldmap)
 wrld_simpl_sf <- st_as_sf(rworldmap::countriesLow)
@@ -243,11 +263,19 @@ PROJ <- "+proj=eck4 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +n
 NE_graticules.prj <- spTransform(NE_graticules, CRSobj = PROJ)
 
 
-sf_c <- read_sf("implementation/boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
+sf_c <- read_sf("boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
 
 ##
 
+closest <- sapply(unique(r_s_pot$UC_NM_MN), function(x) {
+  unique(sf_c$UC_NM_MN)[which.min(stringdist(x, unique(sf_c$UC_NM_MN), method = "jw"))]
+})
+
+r_s_pot$UC_NM_MN <- closest[match(r_s_pot$UC_NM_MN, names(closest))]
+
 grr_m <- merge(r_s_pot, sf_c, "UC_NM_MN")
+
+grr_m <- grr_m %>% group_by(UC_NM_MN) %>% dplyr::slice_max(P15, n=1)
 
 ##
 
@@ -304,7 +332,7 @@ ggsave("paper/map_counterbalancing_wbgt_max_eu.png", scale=1.2, height = 4, widt
 
 ##
 
-clima <- read.csv("implementation/cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
+clima <- read.csv("cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
 
 grr_m <- merge(grr_m, clima, by.x="UC_NM_MN", by.y="city")
 
@@ -325,16 +353,15 @@ ggplot(grr_m)+
   gg.layers::geom_boxplot2(aes(x=Cls_short, y=out_b_mean), width.errorbar = .25, fill="lightgrey", lwd=0.1)+
   xlab("")+
   ylab("")+
-  scale_y_continuous(breaks=seq(0, 60, 10), limits = c(0, 60))
+  scale_y_continuous(limits=quantile(grr_m$out_b_mean, c(0.15, 0.85)))
 
 ggsave("paper/map_counterbalancing_wbgt_max_boxplot.pdf", scale=.5, height = 4, width = 8)
 ggsave("paper/map_counterbalancing_wbgt_max_boxplot.png", scale=.5, height = 4, width = 8)
 
 ########
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Sydney", "Dubai", "Lima", "Houston", "Bogota", "Nairobi", "Dhaka")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -359,6 +386,14 @@ colnames(markups)[4] <- "variable"
 colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -399,7 +434,7 @@ r_s_pot$value <- r_s_pot$value * 100
 
 r_s_pot$value <- ifelse(r_s_pot$value < 0, 0, r_s_pot$value)
 
-r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::summarise(value = mean(value, na.rm=T))
+r_s_pot <- r_s_pot %>% group_by(UC_NM_MN) %>% dplyr::filter(variable=="CurPol")
 
 library(rworldmap)
 wrld_simpl_sf <- st_as_sf(rworldmap::countriesLow)
@@ -412,11 +447,19 @@ PROJ <- "+proj=eck4 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +n
 NE_graticules.prj <- spTransform(NE_graticules, CRSobj = PROJ)
 
 
-sf_c <- read_sf("implementation/boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
+sf_c <- read_sf("boundaries/GHS_STAT_UCDB2015MT_GLOBE_R2019A_V1_2.gpkg") # Cities database
 
 ##
 
+closest <- sapply(unique(r_s_pot$UC_NM_MN), function(x) {
+  unique(sf_c$UC_NM_MN)[which.min(stringdist(x, unique(sf_c$UC_NM_MN), method = "jw"))]
+})
+
+r_s_pot$UC_NM_MN <- closest[match(r_s_pot$UC_NM_MN, names(closest))]
+
 grr_m <- merge(r_s_pot, sf_c, "UC_NM_MN")
+
+grr_m <- grr_m %>% group_by(UC_NM_MN) %>% dplyr::slice_max(P15, n=1)
 
 ##
 
@@ -448,7 +491,7 @@ ggsave("paper/map_counterbalancing_wbgt_mean.pdf", scale=2, height = 4, width = 
 
 ##
 
-clima <- read.csv("implementation/cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
+clima <- read.csv("cities/cities_urged+GHS.csv") %>% dplyr::select(city, Cls_short)
 
 grr_m <- merge(grr_m, clima, by.x="UC_NM_MN", by.y="city")
 
@@ -469,6 +512,6 @@ ggplot(grr_m)+
   gg.layers::geom_boxplot2(aes(x=Cls_short, y=out_b_mean), width.errorbar = .25, fill="lightgrey", lwd=0.1)+
   xlab("")+
   ylab("")+
-  scale_y_continuous(breaks=seq(0, 60, 10), limits = c(0, 60))
+  scale_y_continuous(limits=quantile(grr_m$out_b_mean, c(0.15, 0.85)))
 
 ggsave("paper/map_counterbalancing_wbgt_mean_boxplot.pdf", scale=.5, height = 4, width = 8)

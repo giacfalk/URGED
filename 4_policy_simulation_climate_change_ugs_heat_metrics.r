@@ -8,10 +8,12 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # Set work directory
 setwd('..') # Move one up
 stub <- paste0(getwd(), "/")
 library(tidyverse)
+
 # Source helper files and functions ---------------------------------------
 source("URGED/support/fcts_labelers_colors.R") # Here also the samplecities are defined
 source("URGED/support/fcts_helpers_debug.R")
 source("URGED/support/fct_scenarios.R") # Here the "filtering" function can be found
+
 ### 
 
 df <- expand.grid(var=c("tas", "wbgt"), variant=c("mean", "min", "max"))
@@ -24,17 +26,19 @@ functer <- function(var, variant){
 print(paste("Processing", var, variant))
   
 lcz_shares <- read.csv("output_data/outer.csv") %>% na.omit(.)
-coefs <- read.csv(
-  paste0("output_data/outer_2", ifelse(var=="wbgt", "_wbgt", ""),
-         ifelse(variant == "mean", "_mean",
-                ifelse(variant=="max", "_max", "_min")),
-         ".csv"))
 
+coefs <- read.csv(paste0("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_", ifelse(var=="wbgt", "WBGT", "T2M"),
+                         ifelse(variant == "mean", "mean",
+                                ifelse(variant=="max", "max", "min")), "_raw_gvi.csv"))
 
-coefs$UC_NM_MN <- gsub("_wbgt", "", coefs$UC_NM_MN)
-coefs$UC_NM_MN <- gsub("_max", "", coefs$UC_NM_MN)
-coefs$UC_NM_MN <- gsub("_mean", "", coefs$UC_NM_MN)
-coefs$UC_NM_MN <- gsub("_min", "", coefs$UC_NM_MN)
+library(stringdist)
+
+closest <- sapply(unique(coefs$city), function(x) {
+  unique(lcz_shares$UC_NM_MN)[which.min(stringdist(x, unique(lcz_shares$UC_NM_MN), method = "jw"))]
+})
+
+coefs$city <- closest[match(coefs$city, names(closest))]
+
 
 scens <- read.csv("output_data/outer_3.csv")
 
@@ -43,32 +47,7 @@ scens <- read.csv("output_data/outer_3.csv")
 
 scens$lcz <- factor(scens$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 
-###
-
-nearest_word_match <- function(vec1, vec2, method = "lv") {
-  library(stringdist)
-  
-  dist_matrix <- stringdistmatrix(vec1, vec2, method = method)
-  nearest_indices <- apply(dist_matrix, 1, which.min)
-  
-  data.frame(
-    original = vec1,
-    closest_match = vec2[nearest_indices],
-    distance = dist_matrix[cbind(1:length(vec1), nearest_indices)],
-    stringsAsFactors = FALSE
-  )
-}
-
-nnn <- nearest_word_match(unique(coefs$UC_NM_MN), unique(scens$UC_NM_MN))
-nnn$closest_match[106] <- "Rotterdam"
-nnn$distance <- NULL
-colnames(nnn) <- c("city", "city_provide")
-
-coefs <- merge(coefs, nnn, by.x="UC_NM_MN", by.y="city")
-coefs$UC_NM_MN <- coefs$city_provide
-coefs$city_provide <- NULL
-
-###
+coefs$lcz <- factor(coefs$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 
 lcz_shares <- dplyr::select(lcz_shares, -(c(1,3,4)))
 lcz_shares <- reshape2::melt(lcz_shares, 1)
@@ -80,8 +59,8 @@ scens$X <- NULL
 
 ###
 
-merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
-merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y=c("UC_NM_MN", "lcz"))
+merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("city", "lcz"))
+merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 
 ###
 
@@ -94,7 +73,7 @@ merger <- dplyr::arrange(merger, UC_NM_MN, variable, year, month, scen_SGS)
 
 merger_2020 <- dplyr::filter(merger, year<=2025)
 merger_2020 <- merger_2020 %>% group_by(UC_NM_MN, variable) %>% dplyr::summarise(SGS_base=mean(SGS, na.rm=T))
-merger <- filter(merger, year==2050)
+merger <- filter(merger, year %in% c(2030, 2040, 2050))
 merger <- merge(merger, merger_2020, c("UC_NM_MN", "variable"))
 merger$SGS <- merger$SGS - merger$SGS_base
 
@@ -115,61 +94,61 @@ merger$value <- as.numeric(merger$value)
 
 merger_s <- group_by(merger, UC_NM_MN, year, month, scen_SGS) %>% dplyr::mutate(value=value*(1/sum(value, na.rm=T)))
 
-merger_s$product <- merger_s$value * merger_s$coef/100
+merger_s$product <- merger_s$value * merger_s$coef
 
 merger_s <- group_by(merger_s, UC_NM_MN, year, month, scen_SGS) %>% dplyr::summarise(product=sum(product, na.rm=T))
 
 ggplot(merger_s %>% filter(UC_NM_MN %in% list_samplecities))+
   geom_hline(yintercept = 0)+
-  geom_line(aes(x=month, y=product*100, colour=scen_SGS))+
+  geom_line(aes(x=month, y=product, colour=scen_SGS))+
   scale_x_continuous(labels=c(1:12), breaks=c(1:12))+
-  ylab(paste0("% change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) in response to GVI increase by 1 unit"))+
+  ylab(paste0("marginal change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) in response to GVI increase by 1 unit"))+
   facet_wrap(vars(UC_NM_MN), scales = "free")+
   theme(legend.position = "bottom", legend.direction = "horizontal")
 
 ggsave(paste0("results/scenarios/marginal_heat_decrease_city_", var, "_", variant, ".png"), height = 8, width = 15)
 
-write.csv(merger_s %>% dplyr::mutate(product=product*100), paste0("results/scenarios/marginal_heat_decrease_", var, "_", variant, ".csv"))
+write.csv(merger_s %>% dplyr::mutate(product=product), paste0("results/scenarios/marginal_heat_decrease_", var, "_", variant, ".csv"))
 
 ##
 
 merger_s <- group_by(merger, UC_NM_MN, year, month, scen_SGS) %>% dplyr::mutate(value=value*(1/sum(value, na.rm=T)))
  
-merger_s$product <-merger_s$coef/100 * merger_s$SGS_base
+merger_s$product <-merger_s$coef * merger_s$SGS_base
 
 merger_s <- dplyr::group_by(merger_s, UC_NM_MN, year, month, scen_SGS) %>% dplyr::summarise(product=sum(product*value, na.rm=T))
 
 ggplot(merger_s %>% filter(UC_NM_MN %in% list_samplecities))+
   geom_hline(yintercept = 0)+
-  geom_line(aes(x=month, y=(product*100), colour=scen_SGS))+
+  geom_line(aes(x=month, y=(product), colour=scen_SGS))+
   scale_x_continuous(labels=c(1:12), breaks=c(1:12))+
-  ylab(paste0("% change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) due to current SGS level"))+
+  ylab(paste0("total change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) due to current SGS level"))+
   facet_wrap(vars(UC_NM_MN), scales = "free")+
   theme(legend.position = "bottom", legend.direction = "horizontal")
 
 ggsave(paste0("results/scenarios/percentage_heat_decrease_city_current_", var, "_", variant, ".png"), height = 8, width = 15) 
 
-write.csv(merger_s %>% dplyr::mutate(product=product*100), paste0("results/scenarios/percentage_heat_decrease_current_", var, "_", variant, ".csv"))
+write.csv(merger_s %>% dplyr::mutate(product=product), paste0("results/scenarios/percentage_heat_decrease_current_", var, "_", variant, ".csv"))
 
 ###
 
 merger_s <- group_by(merger, UC_NM_MN, year, month, scen_SGS) %>% dplyr::mutate(value=value*(1/sum(value, na.rm=T)))
 
-merger_s$product <-merger_s$coef/100 * merger_s$SGS
+merger_s$product <-merger_s$coef * merger_s$SGS
 
 merger_s <- dplyr::group_by(merger_s, UC_NM_MN, year, month, scen_SGS) %>% dplyr::summarise(product=sum(product*value, na.rm=T))
 
 ggplot(merger_s %>% filter(UC_NM_MN %in% list_samplecities))+
   geom_hline(yintercept = 0)+
-  geom_line(aes(x=month, y=(product*100), colour=scen_SGS))+
+  geom_line(aes(x=month, y=(product), colour=scen_SGS))+
   scale_x_continuous(labels=c(1:12), breaks=c(1:12))+
-  ylab(paste0("% change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) due to future SGS evolution"))+
+  ylab(paste0("change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) due to future SGS evolution"))+
   facet_wrap(vars(UC_NM_MN), scales = "free")+
   theme(legend.position = "bottom", legend.direction = "horizontal")
 
 ggsave(paste0("results/scenarios/percentage_heat_decrease_city_", var, "_", variant, ".png"), height = 8, width = 15) 
 
-write.csv(merger_s %>% dplyr::mutate(product=product*100), paste0("results/scenarios/percentage_heat_decrease_", var, "_", variant, ".csv"))
+write.csv(merger_s %>% dplyr::mutate(product=product), paste0("results/scenarios/percentage_heat_decrease_", var, "_", variant, ".csv"))
 
 
 ####
@@ -181,6 +160,9 @@ if(var=="tas"){
 # average monthly temperature by lcz
 
 outer = list.files(path="results", full.names = T, pattern="t_stats", recursive = T)
+outer = outer[!grepl("wbgt", outer)]
+outer = outer[!grepl("lst", outer)]
+outer = outer[grepl(paste0("_", variant), outer)]
 outer = outer[!grepl("Newcastle", outer)]
 outer = bind_rows(lapply(outer, read.csv))
 outer <- dplyr::group_by(outer, city, variable, lcz) %>% dplyr::summarise(value=mean(value, na.rm=T))
@@ -191,7 +173,7 @@ colnames(outer)[4] <- "tas"
   
 markups <- readRDS("results/scenarios/climate_change_provide_markups.rds") # Deltas for future years
 
-markups <- markups %>% filter(var==ifelse(variant=="mean", "tas", ifelse(variant=="maximum", "tasmax", "tasmin")), pctl %in% c("pct45", "pct55"))
+markups <- markups %>% filter(var==ifelse(variant=="mean", "tas", ifelse(variant=="max", "tasmax", "tasmin")), pctl %in% c("pct45", "pct55"))
 
 library(data.table)
 
@@ -202,6 +184,8 @@ markups <- markups[, lapply(.SD, mean, na.rm = TRUE), by = .(city, year, clim_sc
 markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
+
+####
 
 } else{
   
@@ -225,6 +209,7 @@ outerss = list.files(path="results", full.names = T, pattern=paste0(ifelse(var==
 
 if(var=="tas"){
   outerss = outerss[!grepl("wbgt", outerss)]
+  outerss = outerss[!grepl("lst", outerss)]
   outerss = outerss[!grepl("Newcastle", outerss)]
   
 } 
@@ -232,13 +217,29 @@ if(var=="tas"){
 outerss = bind_rows(lapply(outerss, read.csv))
 
 if(var=="tas"){
+  
+  markups$city <- gsub("_", " ", markups$city)
+  
+  closest <- sapply(unique(outerss$city), function(x) {
+    unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+  })
+  
+  outerss$city <- closest[match(outerss$city, names(closest))]
+  
 outerss <- merge(outerss, markups, by=c("city", "variable"))
 outerss$X <- NULL
 } else{
   
+  
+  closest <- sapply(unique(outerss$city), function(x) {
+    unique(markups_wbgt$city)[which.min(stringdist(x, unique(markups_wbgt$city), method = "jw"))]
+  })
+  
+  outerss$city <- closest[match(outerss$city, names(closest))]
+  
   markups_wbgt$variable <- match(markups_wbgt$month, month.abb)
   markups_wbgt$month <- NULL
-  
+
   outerss <- merge(outerss, markups_wbgt, by=c("city", "variable", "lcz"))
   outerss$X <- NULL
   
@@ -267,12 +268,18 @@ merger$value <- as.numeric(merger$value)
 
 outerss$lcz <- factor(outerss$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 
+closest <- sapply(unique(merger$UC_NM_MN), function(x) {
+  unique(outerss$city)[which.min(stringdist(x, unique(outerss$city), method = "jw"))]
+})
+
+merger$UC_NM_MN <- closest[match(merger$UC_NM_MN, names(closest))]
+
 merger_s <- merge(merger, outerss, by.x=c("UC_NM_MN", "month", "variable", "year"), by.y=c("city", "variable", "lcz", "year"))
 
 merger_s <- group_by(merger_s, UC_NM_MN, year, month, scen_SGS, clim_scen) %>% dplyr::mutate(value=value*(1/sum(value, na.rm=T)))
 
-merger_s$product <- ((merger_s$coef * merger_s$SGS)) * merger_s$tas
-merger_s$product_fut <- ((merger_s$coef * merger_s$SGS)) * merger_s$tas_fut
+merger_s$product <- ((merger_s$coef * merger_s$SGS)) 
+merger_s$product_fut <- ((merger_s$coef * merger_s$SGS))
   
 merger_s <- dplyr::group_by(merger_s, UC_NM_MN, year, month, scen_SGS, clim_scen) %>% dplyr::summarise(product=sum(product*value, na.rm=T), product_fut=sum(product_fut*value, na.rm=T))
 
@@ -285,7 +292,7 @@ library(scales)
 ggplot(merger_s %>% filter(UC_NM_MN %in% list_samplecities))+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_line(aes(x=as.factor(month), y=product_fut/100, colour=clim_scen, group=interaction(clim_scen, scen_SGS), linetype=scen_SGS))+
+  geom_line(aes(x=as.factor(month), y=product_fut, colour=clim_scen, group=interaction(clim_scen, scen_SGS), linetype=scen_SGS))+
   ylab(paste0("Change in monthly", ifelse(variant=="mean", "average", ifelse(variant=="max", "maximum", "minimum")), ifelse(var=="tas", " air temperature", " WBGT"), " (°C) in 2050"))+
   ggtitle("")+
   facet_wrap(vars(UC_NM_MN), scales = "free")+
@@ -296,7 +303,7 @@ ggplot(merger_s %>% filter(UC_NM_MN %in% list_samplecities))+
 
 ggsave(paste0("results/scenarios/absolute_heat_decrease_city_", var, "_", variant, ".pdf"), height = 8, width = 10, scale=1.35)
 
-write.csv(merger_s %>% dplyr::mutate(product_fut=product_fut/100),paste0("results/scenarios/absolute_heat_decrease_", var, "_", variant, ".csv"))
+write.csv(merger_s %>% dplyr::mutate(product_fut=product_fut),paste0("results/scenarios/absolute_heat_decrease_", var, "_", variant, ".csv"))
 
 
 }

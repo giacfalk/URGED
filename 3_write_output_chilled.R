@@ -46,6 +46,7 @@ write.csv(outer, "output_data/outer.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[!grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("mean", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d
@@ -82,6 +83,7 @@ write.csv(outer_2, "output_data/outer_2_mean.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[!grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("max", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d
@@ -117,6 +119,7 @@ write.csv(outer_2, "output_data/outer_2_max.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[!grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("min", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d
@@ -155,6 +158,7 @@ write.csv(outer_2, "output_data/outer_2_min.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("mean", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d
@@ -191,6 +195,7 @@ write.csv(outer_2, "output_data/outer_2_wbgt_mean.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("max", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d
@@ -226,6 +231,7 @@ write.csv(outer_2, "output_data/outer_2_wbgt_max.csv")
 outer_2n = list.files(path="results", full.names = T, pattern="monthly_coefs", recursive = T)
 outer_2n = outer_2n[grepl("wbgt", outer_2n)]
 outer_2n = outer_2n[grepl("min", outer_2n)]
+outer_2n = outer_2n[!grepl("r1", outer_2n)]
 outer_2s = bind_rows(lapply(outer_2n, read.csv), .id="city")
 outer_2s$city =gsub("_mean", "", gsub(".csv", "", gsub("monthly_coefs_", "", basename(outer_2n)))[as.numeric(outer_2s$city)])
 outer_2s$conf_high =  outer_2s$Estimate_d + 1.96*outer_2s$Std..Error_d

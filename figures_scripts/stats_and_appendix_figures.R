@@ -1,7 +1,3 @@
-
-setwd(stub)
-setwd("..")
-
 library(tidyverse)
 library(modelsummary)
 library(data.table)
@@ -21,9 +17,9 @@ View(markups_wbgt[which(markups_wbgt$delta<0),])
 ###########################
 ###########################
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_max.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Sydney", "Dubai", "Lima", "Houston", "Bogota", "Nairobi", "Dhaka")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Sydney", "Dubai", "Lima", "Mexico City", "Bogota", "Nairobi", "Dhaka")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -48,6 +44,15 @@ colnames(markups)[4] <- "variable"
 colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
+
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 

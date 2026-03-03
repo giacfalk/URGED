@@ -17,32 +17,32 @@ path_lcz <- paste0(stub0, "climate/lcz/lcz_filter_v3.tif") # https://zenodo.org/
 
 ###
 
-fls <- list.files(path=paste0(stub0, "results/"), pattern="monthly_coefs_", full.names = T, recursive = T)
+coefs1 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_WBGTmax_raw_gvi.csv")
+coefs2 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_WBGTmin_raw_gvi.csv")
+coefs3 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_WBGTmean_raw_gvi.csv")
+coefs4 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_T2Mmax_raw_gvi.csv")
+coefs5 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_T2Mmin_raw_gvi.csv")
+coefs6 <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_T2Mmean_raw_gvi.csv")
 
-fls_read <- lapply(fls, read.csv)
-names(fls_read) <- basename(fls)
-fls_read <- bind_rows(fls_read, .id="source")
+coefs1$metric <- "WBGT"
+coefs2$metric <- "WBGT"
+coefs3$metric <- "WBGT"
+coefs4$metric <- "T2M"
+coefs5$metric <- "T2M"
+coefs6$metric <- "T2M"
 
-fls_read$source <- gsub("_mean.csv", "_mean_Ta.csv", fls_read$source)
-fls_read$source <- gsub("_min.csv", "_min_Ta.csv", fls_read$source)
-fls_read$source <- gsub("_max.csv", "_max_Ta.csv", fls_read$source)
+coefs1$var <- "max"
+coefs2$var <- "min"
+coefs3$var <- "mean"
+coefs4$var <- "max"
+coefs5$var <- "min"
+coefs6$var <- "mean"
 
-###
-
-
-fls_read$city <- sub("(_)?(min|max|mean).*", "", gsub("monthly_coefs_", "", fls_read$source))
-
-fls_read$metric <- sub(".*_", "", fls_read$source)
-fls_read$metric <- gsub(".csv", "", fls_read$metric)
-
-fls_read$var <- ifelse(grepl("_max_", fls_read$source), "max",  ifelse(grepl("_min_", fls_read$source), "min", "mean"))
-
-fls_read$X <- NULL
+fls_read <- bind_rows(coefs1, coefs2, coefs3, coefs4, coefs5, coefs6)
 
 ###
 
 fls_read_m <- fls_read
-fls_read_m$source <- NULL
 
 ###
 
@@ -50,22 +50,35 @@ library(sf)
 kg <- read_sf("results/cities_database_climatezones.gpkg")
 kg <- kg %>% dplyr::select(UC_NM_MN, kg_cl_1) %>% st_set_geometry(NULL)
 
+#
+
+library(stringdist)
+
+closest <- sapply(unique(kg$UC_NM_MN), function(x) {
+  unique(fls_read_m$city)[which.min(stringdist(x, unique(fls_read_m$city), method = "jw"))]
+})
+
+kg$UC_NM_MN <- closest[match(kg$UC_NM_MN, names(closest))]
+
+
+#
+
 fls_read_m <- merge(fls_read_m, kg, by.x="city", by.y="UC_NM_MN")
 
 
 ###
 
 library(modelsummary)
-datasummary( Factor(var) * Factor(metric)  ~ Factor(lcz) * Estimate_d * mean, data = fls_read_m)
+datasummary( Factor(var) * Factor(metric)  ~ Factor(lcz) * coef * mean, data = fls_read_m, fmt = fmt_significant(1))
 
-datasummary( Factor(var) * Factor(metric)  ~ Factor(lcz) * Estimate_d * mean, data = fls_read_m,  output = "results/compare_metrics_lcz.tex")
+datasummary( Factor(var) * Factor(metric)  ~ Factor(lcz) * coef * mean, data = fls_read_m,  output = "results/compare_metrics_lcz.tex", fmt = fmt_significant(1))
 
 ###
 
 library(modelsummary)
-datasummary( Factor(var) * Factor(metric)  ~ Factor(kg_cl_1) * Estimate_d * mean, data = fls_read_m)
+datasummary( Factor(var) * Factor(metric)  ~ Factor(kg_cl_1) * coef * mean, data = fls_read_m, fmt = fmt_significant(1))
 
-datasummary( Factor(var) * Factor(metric)  ~ Factor(kg_cl_1) * Estimate_d * mean, data = fls_read_m,  output = "results/compare_metrics_kgc.tex")
+datasummary( Factor(var) * Factor(metric)  ~ Factor(kg_cl_1) * coef * mean, data = fls_read_m,  output = "results/compare_metrics_kgc.tex", fmt = fmt_significant(1))
 
 ####
 

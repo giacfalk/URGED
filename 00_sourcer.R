@@ -58,8 +58,15 @@ source("0_show_ugs_policy_meaning.R") # useful for understanding what a given GV
 ########
 ########
 
-source("1_monthly_ugs_elasticities_r1.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum air temperature in each city
-source("1_monthly_ugs_elasticities_WBGT.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT in each city
+source("run_WBGT_max_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+source("run_WBGT_mean_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+source("run_WBGT_min_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+source("run_T2M_max_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+source("run_T2M_mean_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+source("run_T2M_min_all_cities.R") # estimate GVI impact as a determinant of local mean, maximum, and minimum WBGT and air temperature in each city
+
+source("1_daily_ugs_elasticities_r1_robustness.R") # run robustness regression specifications (pooled specifciation, standard errors clustering robustness, etc.)
+
 source("1_summary_table_compare_across_metrics.R") # produce a table comparing the estimated impact of GVI across the climate metrics considered
 
 source("0_tstats_city_lcz_urbclim.R") # This file writes a global gridded output templatefor climate zone-specific, local-climate zone specific CEs.
@@ -86,8 +93,8 @@ source("4_policy_simulation_climate_change_ugs_heat_metrics.r") # perform policy
 ########
 # Paper scripts
 
-source("figures_scripts/fig_1.R")
-source("figures_scripts/regression_boxplots.R")
+source("figures_scripts/fig_3.R")
+# source("figures_scripts/regression_boxplots.R")
 source("figures_scripts/table_scenarios.R")
 source("figures_scripts/21_project_future_ugs_pointwise_plotting.R")
 source("figures_scripts/plot_scenarios.R")
@@ -98,5 +105,3 @@ source("figures_scripts/map_counterbalancing_wbgt_max.R")
 
 # Scripts for paper #2
 source("paper2/paper2_makeplots.R")
-
-test

@@ -174,7 +174,7 @@ for(city_n in which(ff_c %in% out_ndvi_m$city_provide)){
   
   # Write as sf spatial data frame --------------------------------------------------------
   out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% # Transform out_ndvi_m_f to sf object
-    st_transform(crs_city) %>% st_buffer(50) 
+    st_transform(crs_city) %>% st_buffer(10) 
   
   # Extract PROVIDE CDH and add to df -----------------------------------------------
   
@@ -218,7 +218,7 @@ for(city_n in which(ff_c %in% out_ndvi_m$city_provide)){
   out_ndvi_m_bk <- out_ndvi_m_f # Backup variable
   out_ndvi_m_f$geometry <- NULL # Add a column "geometry"
   
-  out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(50) %>% st_transform(4326)
+  out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(10) %>% st_transform(4326)
   
   ###
   
@@ -316,7 +316,7 @@ for(city_n in which(ff_c %in% out_ndvi_m$city_provide)){
   
   ##
   ##
-  m1 <- feols(value ~  out_b:lcz + build_h + build_v + elevation + water  | variable, data=out_ndvi_m_monthly)
+  m1 <- feols(value ~  out_b:lcz + build_h + build_v + elevation + water  | variable + lcz, data=out_ndvi_m_monthly)
   summary(m1, "cluster")
   
   saveRDS(broom::tidy(m1), file = paste0("results/URBCLIM_historical/regressions_/city_monthly_regression_", ff_c[city_n], "_", min_max_avg, "_wbgt.rds")) # Export as .tex

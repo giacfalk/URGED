@@ -7,8 +7,17 @@ ww$lcz <- factor(ww$lcz, levels=1:9, labels = c("Compact highrise", "Compact mid
 # same but with mean WBGT
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_wbgt_max.csv")  %>% dplyr::mutate(UC_NM_MN = gsub("_max_wbgt", "", UC_NM_MN))
+coefs <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_WBGTmax_raw_gvi.csv")
 scens <- read.csv("output_data/outer_3.csv")
+
+library(stringdist)
+
+closest <- sapply(unique(coefs$city), function(x) {
+  unique(lcz_shares$UC_NM_MN)[which.min(stringdist(x, unique(lcz_shares$UC_NM_MN), method = "jw"))]
+})
+
+coefs$city <- closest[match(coefs$city, names(closest))]
+
 
 ###
 
@@ -25,7 +34,9 @@ scens$X <- NULL
 
 scens$lcz <- factor(scens$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 
-merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
+coefs$lcz <- factor(coefs$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
+
+merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("city", "lcz"))
 merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 
 kg <- read_sf("results/cities_database_climatezones.gpkg")
@@ -52,12 +63,13 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(tas_bin), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
   scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
-  scale_y_continuous(limits=c(-0.6, 0.25))+
-  ylab(expression(frac(partialdiff * T["wg, max"], partialdiff * GVI)))+
+  ylab(expression(frac(partialdiff * T[wbgt * "," * " " * max],
+                       partialdiff * GVI)))+
   xlab(expression("Monthly average " * T["wg, max"]))+
   facet_wrap(. ~ variable)+
   theme(strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 8))
+        strip.text.y = element_text(size = 8))+
+  coord_cartesian(ylim = c(-0.075, 0.025))
 
 ggsave("paper/fig1_wbgt_max_tbins.pdf", height=6, width=10, scale=0.9)
 
@@ -67,7 +79,6 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(tas_bin), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
   scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
-  scale_y_continuous(limits=c(-.5, 0.25), breaks = seq(-.5, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * T["wg, max"], partialdiff * GVI)))+
   xlab(expression("Monthly average " * T["wg, max"]))+
   facet_grid(variable~kg_cl_1)+
@@ -80,10 +91,20 @@ ggsave("paper/fig1_wbgt_max_tbins_faceted_kgc.png", height=16, width=overleafwid
 
 #########################
 # The same but for max Ta
-coefs <- read.csv("output_data/outer_2_max.csv")  %>% dplyr::mutate(UC_NM_MN = gsub("_max", "", UC_NM_MN))
+coefs <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_T2Mmax_raw_gvi.csv")
 coefs$X <- NULL
 
-merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
+library(stringdist)
+
+closest <- sapply(unique(coefs$city), function(x) {
+  unique(lcz_shares$UC_NM_MN)[which.min(stringdist(x, unique(lcz_shares$UC_NM_MN), method = "jw"))]
+})
+
+coefs$city <- closest[match(coefs$city, names(closest))]
+
+coefs$lcz <- factor(coefs$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
+
+merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("city", "lcz"))
 merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 
 merger <- merge(merger, kg, "UC_NM_MN")
@@ -103,13 +124,13 @@ ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
   geom_hline(yintercept = 0)+
   gg.layers::geom_boxplot2(aes(x=as.factor(tas_bin), y=coef, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
   scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
-  scale_y_continuous(limits=c(-.5, 0.25), breaks = seq(-.5, 0.25, 0.25))+
   ylab(expression(frac(partialdiff * T["a, max"], partialdiff * GVI)))+
   xlab(expression("Monthly average " * T["a, max"]))+
   facet_grid(variable~kg_cl_1)+
   theme(strip.text.x = element_text(size = 6),
         strip.text.y = element_text(size = 6),
-        axis.text.x = element_text(angle = 60, vjust = 0.5))
+        axis.text.x = element_text(angle = 60, vjust = 0.5))+
+  coord_cartesian(ylim = c(-0.075, 0.025))
 
 ggsave("paper/fig1_ta_max_tbins_faceted_kgc.pdf", height=16, width=overleafwidth, units = "cm", dpi = 300)
 ggsave("paper/fig1_ta_max_tbins_faceted_kgc.png", height=16, width=overleafwidth, units = "cm", dpi = 300)

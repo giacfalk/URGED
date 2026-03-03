@@ -13,3 +13,5 @@ todo.txt
 todo.txt
 .Rproj.user
 URGED.Rproj
+*.rds
+*.csv

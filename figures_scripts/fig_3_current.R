@@ -1,5 +1,4 @@
 
-setwd(stub)
 
 ww <- read_csv(list.files(path=paste0("results/URBCLIM_historical/wbgt_"), pattern="wbgt_stats_max", full.names = T)) 
 
@@ -8,9 +7,16 @@ ww$lcz <- factor(ww$lcz, levels=1:9, labels = c("Compact highrise", "Compact mid
 # same but with mean WBGT
 
 lcz_shares <- read.csv("output_data/outer.csv")
-coefs <- read.csv("output_data/outer_2_wbgt_max.csv")  %>%
-  mutate(UC_NM_MN = gsub("_max_wbgt", "", UC_NM_MN))
+coefs <- read.csv("C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/URGED/armande/summary_city_lcz_month_WBGTmax_raw_gvi.csv")
 scens <- read.csv("output_data/outer_3.csv")
+
+library(stringdist)
+
+closest <- sapply(unique(coefs$city), function(x) {
+  unique(lcz_shares$UC_NM_MN)[which.min(stringdist(x, unique(lcz_shares$UC_NM_MN), method = "jw"))]
+})
+
+coefs$city <- closest[match(coefs$city, names(closest))]
 
 ###
 
@@ -27,7 +33,9 @@ scens$X <- NULL
 
 scens$lcz <- factor(scens$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
 
-merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
+coefs$lcz <- factor(coefs$lcz, levels=1:9, labels = c("Compact highrise", "Compact midrise", "Compact lowrise", "Open highrise", "Open midrise", "Open lowrise", "Lightweight lowrise", "Large lowrise", "Sparsely built"))
+
+merger <- merge(lcz_shares, coefs, by.x=c("UC_NM_MN", "variable"), by.y = c("city", "lcz"))
 merger  <- merge(merger, scens, by.x=c("UC_NM_MN", "variable"), by.y = c("UC_NM_MN", "lcz"))
 
 kg <- read_sf("results/cities_database_climatezones.gpkg")
@@ -42,7 +50,7 @@ merger <- merger %>%
 
 merger <- merge(merger, ww, by.x=c("UC_NM_MN", "variable", "month"), by.y=c("city", "lcz", "variable"))
 
-merger$tas_bin <- cut(merger$value.y, breaks = c(-10, 15, 20, 25, 30, 35, 40, 50), right=F,
+merger$wbgt_max_bin <- cut(merger$value.y, breaks = c(-10, 15, 20, 25, 30, 35, 40, 50), right=F,
                       labels = c("<15°C", "15-20°C", "20-25°C", "25-30°C", "30-35°C", "35-40°C", ">=40°C"))
 
 ###
@@ -56,18 +64,17 @@ summary(merger$current_cooling)
 
 ###
 
-ggplot(merger %>% filter(year==2025 & variable!="Lightweight lowrise"))+ #2025
+ggplot(merger %>% filter(year==2025))+ #2025
   theme_classic()+
   geom_hline(yintercept = 0)+
-  gg.layers::geom_boxplot2(aes(x=as.factor(tas_bin), y= current_cooling, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
+  gg.layers::geom_boxplot2(aes(x=as.factor(wbgt_max_bin), y= current_cooling, fill=variable), width.errorbar = 0.1, show.legend = F, lwd=0.00001)+
   scale_fill_manual(name="LCZ", values = colors_lcz_no7no10)+
-  ylab(expression("Effect of current SGS levels on " * T["wg, max"]))+
-  xlab(expression("Monthly average " * T["wg, max"]))+
-  facet_grid(variable ~ kg_cl_1)+
+  ylab(expression("Effect of current SGS levels on " ~ T["wg, max"] ~ "(°C)"))+
+xlab(expression("Monthly average " * T["wg, max"]))+
+  facet_grid(variable ~ kg_cl_1, scales="free_y")+
   theme(strip.text.x = element_text(size = 8),
         strip.text.y = element_text(size = 8),
-        axis.text.x = element_text(angle = 60, vjust = 0.5))+
-  scale_y_continuous(limits=c(-2.75, 0.25), breaks = seq(-2.75, 0.25, 0.5))
+        axis.text.x = element_text(angle = 60, vjust = 0.5))
 
 ggsave("paper/fig1_max_current_bins.pdf", height=12, width=10, scale=0.85)
 

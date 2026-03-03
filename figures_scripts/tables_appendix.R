@@ -1,7 +1,4 @@
 
-setwd(stub)
-setwd("..")
-
 library(tidyverse)
 
 lcz_shares <- read.csv("output_data/outer.csv") %>% na.omit(.)
@@ -54,9 +51,9 @@ datasummary(Factor(UC_NM_MN)*scen_SGS ~  year*value*Mean, data=merger_s, title =
 #######
 #######
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_max.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -82,6 +79,15 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
 r$month <- NULL
@@ -115,8 +121,6 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on maximum WBGT temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on maximum WBGT temperature in 2050 across cities and scenarios", output = "paper/climatechange_wbgt_max.tex")
@@ -127,9 +131,9 @@ datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Cl
 #######
 #######
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_min.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_min.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -155,6 +159,15 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
 r$month <- NULL
@@ -188,8 +201,6 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on minimum WBGT temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on minimum WBGT temperature in 2050 across cities and scenarios", output = "paper/climatechange_wbgt_min.tex")
@@ -200,9 +211,9 @@ datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Cl
 #######
 #######
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -228,6 +239,15 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
 r$month <- NULL
@@ -261,17 +281,15 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on mean WBGT temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on mean WBGT temperature in 2050 across cities and scenarios", output = "paper/climatechange_wbgt_mean.tex")
 
 ###
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_tas_max.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_tas_max.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -294,6 +312,15 @@ markups <- markups[, lapply(.SD, max, na.rm = TRUE), by = .(city, year, clim_sce
 markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
+
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -328,17 +355,15 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * max, data=r_s_cc, title = "Climate change impact on maximum temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * max, data=r_s_cc, title = "Climate change impact on maximum temperature in 2050 across cities and scenarios", output = "paper/climatechange_tas_max.tex")
 
 ###
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_tas_min.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_tas_min.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -361,6 +386,15 @@ markups <- markups[, lapply(.SD, min, na.rm = TRUE), by = .(city, year, clim_sce
 markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
+
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -395,17 +429,15 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * min, data=r_s_cc, title = "Climate change impact on minimum temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * min, data=r_s_cc, title = "Climate change impact on minimum temperature in 2050 across cities and scenarios", output = "paper/climatechange_tas_min.tex")
 
 ###
 
-r = read.csv("implementation/results/scenarios/absolute_heat_decrease_tas_mean.csv")
+r = read.csv("results/scenarios/absolute_heat_decrease_tas_mean.csv")
 
-list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Houston")
+list_samplecities = c("Berlin", "Singapore", "Tokyo", "Accra", "Cairo", "Amman", "Phoenix", "Lima", "Mexico City")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -428,6 +460,15 @@ markups <- markups[, lapply(.SD, mean, na.rm = TRUE), by = .(city, year, clim_sc
 markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
+
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
 
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
 
@@ -462,12 +503,8 @@ r_s_cc <- r_s_cc %>% group_by(UC_NM_MN, clim_scen) %>% dplyr::summarise(value = 
 
 r_s_cc$clim_scen <- factor(r_s_cc$clim_scen, levels=c("SP", "GS", "CurPol", "ssp585"))
 
-r_s_cc <- filter(r_s_cc, UC_NM_MN!="Bologna")
-
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on mean temperature in 2050 across cities and scenarios")
 
 datasummary(Factor(UC_NM_MN) ~  clim_scen*value * mean, data=r_s_cc, title = "Climate change impact on mean temperature in 2050 across cities and scenarios", output = "paper/climatechange_tas_mean.tex")
 
 ###
-
-setwd(stub)

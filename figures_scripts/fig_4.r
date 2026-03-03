@@ -7,7 +7,7 @@ setwd(stub)
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -33,7 +33,20 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
+
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -42,8 +55,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -61,10 +72,14 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_wbgt_max_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -79,6 +94,7 @@ ggplot()+
 
 ggsave("paper/scen_result_wbgt_max_boxplot.png", height = 6, width = 6, scale=1.4)
 
+
 ###########################
 
 View(r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),])
@@ -87,7 +103,7 @@ View(r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),])
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_mean.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -113,7 +129,17 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -122,8 +148,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -141,10 +165,14 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_wbgt_mean_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -159,12 +187,11 @@ ggplot()+
 
 ggsave("paper/scen_result_wbgt_mean_boxplot.png", height = 6, width = 6, scale=1.4)
 
-
 ###########################
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_min.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -190,7 +217,18 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -199,8 +237,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -218,10 +254,14 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_wbgt_min_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -236,11 +276,14 @@ ggplot()+
 
 ggsave("paper/scen_result_wbgt_min_boxplot.png", height = 6, width = 6, scale=1.4)
 
+
 ###
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_max.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
+
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -264,7 +307,17 @@ markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -273,8 +326,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -292,10 +343,14 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_tas_max_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -310,11 +365,14 @@ ggplot()+
 
 ggsave("paper/scen_result_tas_max_boxplot.png", height = 6, width = 6, scale=1.4)
 
+
 ###########################
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_mean.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
+
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -338,7 +396,17 @@ markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -347,8 +415,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -366,10 +432,15 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_tas_mean_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -384,11 +455,14 @@ ggplot()+
 
 ggsave("paper/scen_result_tas_mean_boxplot.png", height = 6, width = 6, scale=1.4)
 
+
 ###########################
 
 r = read.csv("results/scenarios/absolute_heat_decrease_tas_min.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
+
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -412,7 +486,17 @@ markups <- reshape2::melt(markups, c(1:4))
 markups$variable <- match(markups$variable, month.abb)
 colnames(markups)[6] <- "delta"
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -421,8 +505,6 @@ r$var <- NULL
 r_s <- reshape2::melt(r, c(1:2, 4))
 
 ##
-
-r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
 
 r_s <- filter(r_s, !(variable=="delta" &scen_SGS!="Decreased provision"))
 
@@ -440,10 +522,16 @@ r_s_2$scen_SGS <- NULL
 
 r_s <- bind_rows(r_s_1, r_s_2)
 
+write.csv(r_s, "paper/data_for_scen_result_tas_min_boxplot.csv")
+
+r_s <- r_s %>% filter(UC_NM_MN %in% list_samplecities)
+
+
+
 ggplot()+
   theme_classic()+
   geom_hline(yintercept = 0)+
-  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen))+
+  geom_boxplot(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x=clim_scen, y=value, fill=clim_scen), outlier.color = "transparent")+
   geom_bar(data=r_s[!(r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585")),], aes(x=clim_scen, y=value, fill=clim_scen), stat = "summary", fun = mean, colour="black")+
   facet_wrap(vars(UC_NM_MN))+
   geom_segment(data=r_s[r_s$clim_scen %in% c("SP", "GS", "CurPol", "ssp585"),], aes(x = which(levels(clim_scen) == "ssp585") + 0.45, xend = which(levels(clim_scen) == "ssp585") + 0.45, y = -2, yend = 5), linetype = "dashed", colour="grey")+
@@ -458,12 +546,13 @@ ggplot()+
 
 ggsave("paper/scen_result_tas_min_boxplot.png", height = 6, width = 6, scale=1.4)
 
+
 #########
 #########
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -489,7 +578,17 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -538,7 +637,7 @@ r_s_pot_part_1 <- r_s_pot
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -564,7 +663,17 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -614,7 +723,7 @@ r_s_pot_part_2 <- r_s_pot
 
 r = read.csv("results/scenarios/absolute_heat_decrease_wbgt_max.csv")
 
-list_samplecities = c("Madrid", "Nairobi", "Houston", "Tokyo")
+list_samplecities = c("Athens", "Nairobi", "Mexico City", "Tokyo")
 
 r <- filter(r, scen_SGS!="ugs_ref")
 
@@ -640,7 +749,17 @@ colnames(markups)[5] <- "delta"
 
 markups$variable <- match(markups$variable, month.abb)
 
+library(stringdist)
+
+closest <- sapply(unique(r$UC_NM_MN), function(x) {
+  unique(markups$city)[which.min(stringdist(x, unique(markups$city), method = "jw"))]
+})
+
+r$UC_NM_MN <- closest[match(r$UC_NM_MN, names(closest))]
+
 r <- merge(r, markups, by.x=c("UC_NM_MN", "month"), by.y=c("city", "variable"))
+
+r$UC_NM_MN <- gsub("_", " ", r$UC_NM_MN)
 
 r$month <- NULL
 r$year <- NULL
@@ -700,12 +819,10 @@ library(modelsummary)
 
 datasummary(Factor(UC_NM_MN) ~  variable*sgs_scenario*value * mean, data=rrr, title = "Climate change impacts in city-level maximum WBGT around 2050 by SGS evolution scenarios and climate change scenarios.")
 
-datasummary(Factor(UC_NM_MN) ~  variable*sgs_scenario*value * mean, data=rrr, title = "Climate change impacts in city-level maximum WBGT around 2050 by SGS evolution scenarios and climate change scenarios.", output = "paper/counterbalancing.tex")
+datasummary(Factor(UC_NM_MN) ~  variable*sgs_scenario*value * mean, data=rrr, title = "Climate change impacts in city-level maximum WBGT around 2050 by SGS evolution scenarios and climate change scenarios.", output = "C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/paper/counterbalancing.tex")
 
 ############
 
-stargazer::stargazer(as.data.frame(unique(rrr$UC_NM_MN)), summary = F, rownames = F, output = "paper/cities_list.tex")
+stargazer::stargazer(as.data.frame(unique(rrr$UC_NM_MN)), summary = F, rownames = F, output = "C:/Users/falchetta/OneDrive - IIASA/IBGF_2024/implementation/paper/cities_list.tex")
 
 ############
-
-setwd(paste0(stub, "/URGED"))

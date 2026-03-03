@@ -61,7 +61,7 @@ for(min_max_avg_sel in c("mean", "min", "max")){
   
   # ######
   # 
-  # out_ndvi_m_ff <- st_as_sf(out_ndvi_m, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(50) %>% st_transform(4326)
+  # out_ndvi_m_ff <- st_as_sf(out_ndvi_m, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(10) %>% st_transform(4326)
   # 
   # lcz <- rast(path_lcz)
   # out_ndvi_m_ff$lcz <- exact_extract(lcz, out_ndvi_m_ff, "majority")
@@ -151,7 +151,8 @@ for(min_max_avg_sel in c("mean", "min", "max")){
     
     ff_filter <- ff[grepl(ff_c[city_n], ff)]
     
-    proj_city =rast(ff_filter)
+    proj_city =lapply(ff_filter, rast)
+    proj_city <- rast(proj_city)
     city = ncdf4::nc_open(ff_filter[1])
     
     crs_city <- (parse_number(capture.output(print(city))[which(grepl("EPSG", capture.output(print(city))))]))
@@ -178,7 +179,7 @@ for(min_max_avg_sel in c("mean", "min", "max")){
     
     # Write as sf spatial data frame --------------------------------------------------------
     out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% # Transform out_ndvi_m_f to sf object
-      st_transform(crs_city) %>% st_buffer(50) 
+      st_transform(crs_city) %>% st_buffer(10) 
     
     # Extract PROVIDE CDH and add to df -----------------------------------------------
     
@@ -222,7 +223,7 @@ for(min_max_avg_sel in c("mean", "min", "max")){
     out_ndvi_m_bk <- out_ndvi_m_f # Backup variable
     out_ndvi_m_f$geometry <- NULL # Add a column "geometry"
     
-    out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(50) %>% st_transform(4326)
+    out_ndvi_m_f <- st_as_sf(out_ndvi_m_f, coords=c("x", "y"), crs=4326, remove = F) %>% st_transform(3395) %>% st_buffer(10) %>% st_transform(4326)
     
     ###
     
@@ -321,7 +322,7 @@ for(min_max_avg_sel in c("mean", "min", "max")){
     ##
     ##
     
-    m1 <- feols(value ~  out_b:lcz + build_h + build_v + elevation + water  | variable, data=out_ndvi_m_monthly)
+    m1 <- feols(value ~  out_b:lcz + build_h + build_v + elevation + water  | variable + lcz, data=out_ndvi_m_monthly)
     summary(m1, "cluster")
     
     saveRDS(broom::tidy(m1), file = paste0("results/URBCLIM_historical/regressions_/city_monthly_regression_", ff_c[city_n], "_", min_max_avg, ".rds")) # Export as .tex

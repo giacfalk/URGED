@@ -118,12 +118,12 @@ all_lcz_polygons$pop_2050 <- all_lcz_polygons$pop_2020 * all_lcz_polygons$gr_rat
 ###
 
 all_lcz_polygons$geometry <- NULL
-
-all_lcz_polygons <- all_lcz_polygons %>% dplyr::select(UC_NM_MN, lcz, pop_2020, pop_2030, pop_2050, gr_rate_2050)
+  
+all_lcz_polygons <- all_lcz_polygons %>% dplyr::select(UC_NM_MN, CTR_MN_ISO, GRGN_L1, GRGN_L2, lcz, pop_2020, pop_2030, pop_2050, gr_rate_2050)
 
 ##
 
-all_lcz_polygons <- all_lcz_polygons %>% dplyr::group_by(UC_NM_MN, lcz) %>% dplyr::summarise(pop_2020=sum(pop_2020, na.rm=T), pop_2030=sum(pop_2030, na.rm=T), pop_2050=sum(pop_2050, na.rm=T))
+all_lcz_polygons <- all_lcz_polygons %>% dplyr::group_by(UC_NM_MN, CTR_MN_ISO,  GRGN_L1, GRGN_L2, lcz) %>% dplyr::summarise(pop_2020=sum(pop_2020, na.rm=T), pop_2030=sum(pop_2030, na.rm=T), pop_2050=sum(pop_2050, na.rm=T))
 
 write.csv(all_lcz_polygons, "cities/cities_pop_bycity_bylcz_2020_2050.csv")
 
