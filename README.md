@@ -1,6 +1,5 @@
 # URGED: URban mitigation and adaptation strategies Gauging through Empirical functions and Data products
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18848130.svg)](https://doi.org/10.5281/zenodo.18848130)
+Falchetta, G., Lohrey, S., Souverijns, N., Lauwaet, D., Schleussner, C.-F., & Niamir, L. (2026). Street green space is relevant but not sufficient for adapting to growing urban heat in world cities. Environ. Res. Lett. doi: 10.1088/1748-9326/ae5c20. [Access the paper](https://iopscience.iop.org/article/10.1088/1748-9326/ae5c20)
 
 ## Overview
 
