@@ -205,11 +205,17 @@ If you use this code or data in your research, please cite:
 
 ```bibtex
 @article{Falchetta2026_SGS_heat,
-  title   = {Street green space is relevant but not sufficient for adapting to growing urban heat in world cities},
-  author  = {Falchetta, Giacomo and Lohrey, Steffen and Souverijns, Niels and Lauwaet, Dirk and Schleussner, Carl-Friedrich and Niamir, Leila},
-  journal = {Environmental Research Letters},
-  year    = {2026},
-  note    = {Under review}
+	author = {Falchetta, Giacomo and Lohrey, Steffen and Souverijns, Niels and Lauwaet, Dirk and Schleussner, Carl-Friedrich and Niamir, Leila},
+	title = {{Street green space is relevant but not sufficient for adapting to growing urban heat in world cities}},
+	journal = {Environ. Res. Lett.},
+	volume = {21},
+	number = {8},
+	pages = {084012},
+	year = {2026},
+	month = apr,
+	issn = {1748-9326},
+	publisher = {IOP Publishing},
+	doi = {10.1088/1748-9326/ae5c20}
 }
 ```
 
